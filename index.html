@@ -9,149 +9,146 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #4caf50; --bg: #f8f9fa; --danger: #ff5252; }
-        body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; }
-        
-        /* 네비게이션 및 검색 */
-        .nav-buttons { display: flex; gap: 10px; margin-bottom: 20px; }
-        .nav-btn { flex: 1; padding: 15px; border-radius: 12px; border: none; background: #fff; font-weight: 600; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .search-box { width: 100%; padding: 15px; border: 1px solid #ddd; border-radius: 12px; margin-bottom: 20px; box-sizing: border-box; font-size: 16px; outline: none; }
-
-        /* 로딩 프로그레스 레이어 */
-        #loadingLayer { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(248, 249, 250, 0.95); z-index: 10000; 
-            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+        :root {
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --primary: #22c55e;
+            --danger: #ef4444;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
         }
-        .prog-container { width: 200px; height: 6px; background: #eee; border-radius: 10px; overflow: hidden; margin-top: 15px; }
-        .prog-bar { width: 0%; height: 100%; background: var(--primary); transition: width 0.3s ease; }
-        .loading-text { font-weight: 600; color: #666; font-size: 0.9em; }
-
-        /* 회원 카드 스타일 */
-        .member-card { background: #fff; padding: 20px; border-radius: 16px; margin-bottom: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); }
-        .card-top { display: flex; justify-content: space-between; margin-bottom: 10px; align-items: center; }
-        .name { font-size: 1.1em; font-weight: 700; }
-        .pt-count { font-weight: 700; color: var(--primary); font-size: 0.9em; }
-        .pt-count.low { color: var(--danger); }
+        body { font-family: 'Pretendard', sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 20px; }
+        .container { max-width: 500px; margin: 0 auto; }
         
-        /* 카드 내 미니 프로그레스 바 */
-        .list-prog-container { background: #eee; border-radius: 5px; height: 6px; width: 100%; overflow: hidden; margin-bottom: 15px; }
-        .list-prog-bar { background: var(--primary); height: 100%; width: 0%; transition: width 0.5s ease; }
+        /* 메인 로딩 프로그레스 바 */
+        #mainLoaderContainer {
+            position: fixed; top: 0; left: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.05); z-index: 1000;
+        }
+        #mainProgressBar {
+            width: 0%; height: 100%; background: linear-gradient(90deg, #4ade80, #22c55e); transition: width 0.3s ease; box-shadow: 0 0 10px var(--primary);
+        }
 
-        .actions { display: flex; gap: 8px; justify-content: flex-end; }
-        button { padding: 10px 16px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; font-family: inherit; }
-        .btn-check { background: var(--primary); color: white; }
-        .btn-detail { background: #f1f1f1; color: #666; }
+        header { margin-bottom: 25px; }
+        h2 { font-size: 1.5rem; font-weight: 700; background: linear-gradient(to right, #4ade80, #22c55e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 20px; }
+        
+        .nav-buttons { display: flex; gap: 10px; margin-bottom: 20px; }
+        .nav-btn { flex: 1; padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: var(--card-bg); color: var(--text-main); font-weight: 600; cursor: pointer; transition: 0.2s; }
+
+        .search-box { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: var(--card-bg); color: white; box-sizing: border-box; margin-bottom: 20px; outline: none; }
+
+        /* 회원 카드 디자인 */
+        .member-card { background: var(--card-bg); border-radius: 20px; padding: 18px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05); animation: fadeIn 0.5s ease forwards; opacity: 0; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .name { font-size: 1.1rem; font-weight: 700; }
+        .pt-count { font-size: 0.85rem; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
+        .pt-normal { background: rgba(34, 197, 94, 0.1); color: #4ade80; }
+        .pt-low { background: rgba(239, 68, 68, 0.1); color: #f87171; }
+
+        .list-prog-container { width: 100%; height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; margin-bottom: 15px; }
+        .list-prog-bar { height: 100%; background: linear-gradient(90deg, #4ade80, #22c55e); transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1); }
+
+        .actions { display: flex; gap: 8px; }
+        .btn-check { flex: 2; background: var(--primary); color: #000; border: none; padding: 10px; border-radius: 10px; font-weight: 700; cursor: pointer; }
+        .btn-detail { flex: 1; background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 10px; cursor: pointer; }
     </style>
 </head>
 <body>
+    <div id="mainLoaderContainer"><div id="mainProgressBar"></div></div>
 
-<div id="loadingLayer">
-    <div class="loading-text">회원 목록을 불러오는 중...</div>
-    <div class="prog-container">
-        <div id="mainProgressBar" class="prog-bar"></div>
+    <div class="container">
+        <header>
+            <h2>PT Members</h2>
+            <div class="nav-buttons">
+                <button class="nav-btn" onclick="location.href='add.html'">회원 등록</button>
+                <button class="nav-btn" onclick="location.href='status.html'">잔여 리포트</button>
+            </div>
+        </header>
+
+        <input type="text" id="searchInput" class="search-box" placeholder="이름 또는 전화번호 검색..." onkeyup="filter()">
+        <div id="memberList"></div>
     </div>
-</div>
 
-<div class="container" id="mainContent" style="visibility: hidden;">
-    <div class="nav-buttons">
-        <button class="nav-btn" onclick="location.href='status.html'">📊 잔여 현황</button>
-        <button class="nav-btn" onclick="location.href='add.html'">👤 회원 등록</button>
-    </div>
-    
-    <input type="text" id="search" class="search-box" placeholder="이름으로 검색하세요..." oninput="render()">
-    
-    <div id="memberList"></div>
-</div>
+    <script>
+        const API = "https://script.google.com/macros/s/AKfycbyDxpufb43p7KP9LrrANZm4wFnyHFiMuKrJu9fjnsBA6kcbXu-QKvK3-VydebDBZXKK/exec";
+        let allData = [];
 
-<script>
-    // 본인의 Google Apps Script 배포 URL
-    const API = "https://script.google.com/macros/s/AKfycbw1Skb_N7XGlpKPEt78LBGrGN13jL7m0Npu5Htw-D1pG1knNr58IlubiOBDQe5nsjNN/exec";
-    let members = [];
-
-    async function load() {
-        const prog = document.getElementById("mainProgressBar");
-        try {
-            // 로딩 시작
-            prog.style.width = "30%";
-            
-            const res = await fetch(`${API}?action=members`);
-            prog.style.width = "70%"; // 데이터 수신 중
-            
-            const json = await res.json();
-            members = json.data || [];
-            
-            prog.style.width = "100%"; // 로드 완료
-            
-            // 약간의 지연 후 화면 표시 (부드러운 전환)
-            setTimeout(() => {
-                document.getElementById("loadingLayer").style.display = "none";
-                document.getElementById("mainContent").style.visibility = "visible";
-                render();
-            }, 400);
-
-        } catch (e) { 
-            alert("데이터를 가져오는 데 실패했습니다.");
-            console.error(e);
-        }
-    }
-
-    function render() {
-        const list = document.getElementById("memberList");
-        const query = document.getElementById("search").value.toLowerCase();
-        list.innerHTML = "";
-
-        const filtered = members.filter(m => m.name.toLowerCase().includes(query));
-        
-        if (filtered.length === 0) {
-            list.innerHTML = '<p style="text-align:center; color:#999; padding:40px;">검색 결과가 없습니다.</p>';
-            return;
+        async function load() {
+            const bar = document.getElementById('mainProgressBar');
+            try {
+                // 로딩 시작
+                bar.style.width = "30%";
+                
+                const res = await fetch(`${API}?action=members`);
+                bar.style.width = "70%";
+                
+                const json = await res.json();
+                allData = json.data;
+                
+                // 데이터 로드 완료
+                bar.style.width = "100%";
+                render(allData);
+                
+                // 완료 후 바 숨기기
+                setTimeout(() => { bar.style.width = "0%"; }, 500);
+            } catch (e) {
+                alert("데이터 로드 실패");
+                bar.style.backgroundColor = "var(--danger)";
+            }
         }
 
-        filtered.forEach(m => {
-            const pt = Number(m.pt || 0);
-            // 30회 기준으로 게이지 계산 (필요시 수정 가능)
-            const per = Math.min((pt / 30) * 100, 100);
-            
-            const div = document.createElement("div");
-            div.className = "member-card";
-            div.innerHTML = `
-                <div class="card-top">
-                    <span class="name">${m.name}</span>
-                    <span class="pt-count ${pt <= 3 ? 'low' : ''}">잔여 ${pt}회</span>
-                </div>
-                <div class="list-prog-container">
-                    <div class="list-prog-bar" style="width:${per}%; ${pt <= 3 ? 'background:var(--danger)' : ''}"></div>
-                </div>
-                <div class="actions">
-                    <button class="btn-check" onclick="checkIn('${m.id}', '${m.name}')">출석</button>
-                    <button class="btn-detail" onclick="location.href='member.html?id=${m.id}'">상세</button>
-                </div>
-            `;
-            list.appendChild(div);
-        });
-    }
+        function render(data) {
+            const list = document.getElementById("memberList");
+            list.innerHTML = "";
+            data.forEach((m, index) => {
+                const pt = Number(m.pt || 0);
+                const per = Math.min((pt / 30) * 100, 100);
+                const isLow = pt <= 3;
+                const div = document.createElement("div");
+                div.className = "member-card";
+                div.style.animationDelay = (index * 0.05) + "s"; // 순차적 등장 효과
+                div.innerHTML = `
+                    <div class="card-top">
+                        <span class="name">${m.name}</span>
+                        <span class="pt-count ${isLow ? 'pt-low' : 'pt-normal'}">잔여 ${pt}회</span>
+                    </div>
+                    <div class="list-prog-container">
+                        <div class="list-prog-bar" style="width:0%; ${isLow ? 'background:#ef4444' : ''}"></div>
+                    </div>
+                    <div class="actions">
+                        <button class="btn-check" onclick="checkIn('${m.id}', '${m.name}')">출석 체크</button>
+                        <button class="btn-detail" onclick="location.href='member.html?id=${m.id}'">상세</button>
+                    </div>
+                `;
+                list.appendChild(div);
 
-    async function checkIn(id, name) {
-        if(!confirm(`${name}님 출석 체크하시겠습니까? (PT 1회 차감)`)) return;
-        
-        // 출석 시에도 간단한 피드백을 위해 화면 상단에 로딩 표시를 다시 할 수 있음
-        try {
+                // 개별 카드 프로그레스 바 애니메이션
+                setTimeout(() => {
+                    div.querySelector('.list-prog-bar').style.width = per + "%";
+                }, 100);
+            });
+        }
+
+        function filter() {
+            const txt = document.getElementById("searchInput").value.toLowerCase();
+            const filtered = allData.filter(m => m.name.toLowerCase().includes(txt) || m.phone.includes(txt));
+            render(filtered);
+        }
+
+        async function checkIn(id, name) {
+            if(!confirm(`${name}님 출석하시겠습니까?`)) return;
+            const bar = document.getElementById('mainProgressBar');
+            bar.style.width = "50%";
             const res = await fetch(`${API}?action=checkin&memberId=${id}`);
             const result = await res.json();
+            bar.style.width = "100%";
             if(result.result === "success") { 
-                alert("출석 체크가 완료되었습니다."); 
+                alert("출석 완료!"); 
                 location.reload(); 
-            } else { 
-                alert(result.message); 
             }
-        } catch(e) {
-            alert("연결 오류가 발생했습니다.");
         }
-    }
-
-    load();
-</script>
+        load();
+    </script>
 </body>
 </html>

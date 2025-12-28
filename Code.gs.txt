@@ -1,24 +1,17 @@
 /************************
- * PT 회원관리 시스템 
- * Backend (Google Apps Script)
+ * PT 회원관리 시스템 Backend
  ************************/
 
 const MEMBERS = "Members";
 const ATTEND = "Attendance";
-const ADMINS = "Admins"; // 관리자 시트
+const ADMINS = "Admins";
 
 function doGet(e) {
   const action = e.parameter.action;
-  
-  // 로그인 처리 (GET 방식 대응)
-  if (action === "login") {
-    return loginCheck(e.parameter.id, e.parameter.password); // password로 수정
-  }
-  
+  if (action === "login") return loginCheck(e.parameter.id, e.parameter.password);
   if (action === "members") return getMembers();
   if (action === "calendar" || action === "attendance") return getAttendance(e.parameter.memberId);
   if (action === "checkin") return checkIn(e.parameter.memberId);
-
   return output({ result: "error", message: "Invalid action" });
 }
 
@@ -26,75 +19,110 @@ function doPost(e) {
   let data;
   try { data = JSON.parse(e.postData.contents); } catch(ex) { return output({ result: "error" }); }
 
-  // 로그인 처리 (POST 방식 대응)
-  if (data.action === "login") {
-    return loginCheck(data.id, data.password); // password로 수정
-  }
+  if (data.action === "login") return loginCheck(data.id, data.password);
+  if (data.action === "addMember") return addMember(data);
   if (data.action === "checkin") return checkIn(data.memberId);
   
+  // 상세 정보 수정 (PT 횟수 D열 포함)
+  if (data.action === "updateDetails") return updateMemberDetails(data);
+  
+  // 회원 삭제
+  if (data.action === "deleteMember") return deleteMember(data.memberId);
+
   return output({ result: "error" });
 }
 
-/** Admins 시트 기반 로그인 검증 */
-function loginCheck(id, pw) {
-  const sheet = SpreadsheetApp.getActive().getSheetByName(ADMINS);
-  if (!sheet) return output({ result: "fail", message: "Admins 시트 없음" });
-
+/** 1. 회원 정보 수정 (D열 PT 횟수 반영) */
+function updateMemberDetails(data) {
+  const ss = SpreadsheetApp.getActive();
+  const sheet = ss.getSheetByName(MEMBERS);
   const rows = sheet.getDataRange().getValues();
+  
   for (let i = 1; i < rows.length; i++) {
-    // 공백 제거 후 비교
-    if (String(rows[i][0]).trim() === String(id).trim() && 
-        String(rows[i][1]).trim() === String(pw).trim()) {
-      return output({ result: "success", admin: "1" });
+    if (String(rows[i][0]) === String(data.memberId)) {
+      sheet.getRange(i + 1, 4).setValue(Number(data.pt));    // D열: PT횟수
+      sheet.getRange(i + 1, 7).setValue(data.height);       // G열: 키
+      sheet.getRange(i + 1, 8).setValue(data.weight);       // H열: 몸무게
+      sheet.getRange(i + 1, 9).setValue(data.goal);         // I열: 목적
+      sheet.getRange(i + 1, 10).setValue(data.memo);        // J열: 메모
+      return output({ result: "success" });
     }
   }
-  return output({ result: "fail", message: "아이디 또는 비밀번호가 틀립니다." });
+  return output({ result: "fail" });
 }
 
-/** 출석 체크 (시간 오차 해결 적용) */
+/** 2. 회원 삭제 기능 */
+function deleteMember(memberId) {
+  const ss = SpreadsheetApp.getActive();
+  const sheet = ss.getSheetByName(MEMBERS);
+  const rows = sheet.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    if (String(rows[i][0]) === String(memberId)) {
+      sheet.deleteRow(i + 1); // 행 전체 삭제
+      return output({ result: "success" });
+    }
+  }
+  return output({ result: "fail" });
+}
+
+/** 3. 출석 체크 (D열 차감) */
 function checkIn(memberId) {
   const ss = SpreadsheetApp.getActive();
   const mSheet = ss.getSheetByName(MEMBERS);
   const aSheet = ss.getSheetByName(ATTEND);
   const rows = mSheet.getDataRange().getValues();
-
   for (let i = 1; i < rows.length; i++) {
     if (String(rows[i][0]) === String(memberId)) {
       if (rows[i][3] <= 0) return output({ result: "fail", message: "잔여 PT 없음" });
-
       const now = new Date();
       const today = Utilities.formatDate(now, "Asia/Seoul", "yyyy-MM-dd");
-      const nowTime = "'" + Utilities.formatDate(now, "Asia/Seoul", "HH:mm"); // 텍스트 강제 저장
-
+      const nowTime = "'" + Utilities.formatDate(now, "Asia/Seoul", "HH:mm");
       aSheet.appendRow([memberId, today, nowTime, 1]);
       mSheet.getRange(i + 1, 4).setValue(rows[i][3] - 1);
       return output({ result: "success" });
     }
   }
-  return output({ result: "fail", message: "회원 없음" });
+  return output({ result: "fail" });
 }
 
-/** 출석 이력 가져오기 */
-function getAttendance(memberId) {
-  const sheet = SpreadsheetApp.getActive().getSheetByName(ATTEND);
-  const rows = sheet.getDataRange().getValues();
-  rows.shift();
-  const data = rows.filter(r => String(r[0]) === String(memberId)).map(r => {
-    let dateVal = r[1] instanceof Date ? Utilities.formatDate(r[1], "Asia/Seoul", "yyyy-MM-dd") : r[1];
-    return { date: dateVal, time: String(r[2]) }; // 시간 텍스트 반환
-  });
-  return output({ result: "success", data: data });
-}
-
-/** 회원 목록 */
 function getMembers() {
   const sheet = SpreadsheetApp.getActive().getSheetByName(MEMBERS);
   const rows = sheet.getDataRange().getValues();
   rows.shift();
-  const members = rows.filter(r => r[4] === "active").map(r => ({
-    id: r[0], name: r[1], phone: r[2], pt: r[3]
+  const members = rows.map(r => ({
+    id: r[0], name: r[1], phone: r[2], pt: r[3], address: r[5], height: r[6], weight: r[7], goal: r[8], memo: r[9]
   }));
   return output({ result: "success", data: members });
+}
+
+function getAttendance(memberId) {
+  const sheet = SpreadsheetApp.getActive().getSheetByName(ATTEND);
+  const rows = sheet.getDataRange().getValues();
+  rows.shift();
+  const data = rows.filter(r => String(r[0]) === String(memberId)).map(r => ({
+    date: r[1] instanceof Date ? Utilities.formatDate(r[1], "Asia/Seoul", "yyyy-MM-dd") : r[1],
+    time: String(r[2])
+  }));
+  return output({ result: "success", data: data });
+}
+
+function loginCheck(id, pw) {
+  const sheet = SpreadsheetApp.getActive().getSheetByName(ADMINS);
+  const rows = sheet.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    if (String(rows[i][0]).trim() === String(id).trim() && String(rows[i][1]).trim() === String(pw).trim()) {
+      return output({ result: "success", admin: "1" });
+    }
+  }
+  return output({ result: "fail" });
+}
+
+function addMember(data) {
+  const ss = SpreadsheetApp.getActive();
+  const sheet = ss.getSheetByName(MEMBERS);
+  const id = new Date().getTime();
+  sheet.appendRow([id, data.name, data.phone, data.pt, "active", data.address, data.height, data.weight, data.goal, data.memo]);
+  return output({ result: "success" });
 }
 
 function output(obj) {

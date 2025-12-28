@@ -9,190 +9,117 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #4caf50; --bg: #f4f7f6; --text-main: #2c3e50; --text-sub: #7f8c8d; }
-        body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; padding: 0; color: var(--text-main); }
-        .container { max-width: 500px; margin: 0 auto; padding: 20px; box-sizing: border-box; }
+        :root {
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --primary: #22c55e;
+            --danger: #ef4444;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
+        }
+        body { font-family: 'Pretendard', sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 20px; }
+        .container { max-width: 500px; margin: 0 auto; }
         
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        h2 { font-size: 1.3em; margin: 0; font-weight: 700; }
-        .btn-back { background: #fff; border: 1px solid #ddd; padding: 8px 16px; border-radius: 12px; cursor: pointer; font-weight: 600; font-size: 0.9em; }
+        /* 상단 로딩 프로그레스 바 */
+        #mainLoaderContainer { position: fixed; top: 0; left: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.05); z-index: 1000; }
+        #mainProgressBar { width: 0%; height: 100%; background: linear-gradient(90deg, #4ade80, #22c55e); transition: width 0.3s ease; box-shadow: 0 0 10px var(--primary); }
 
-        .card { background: #fff; border-radius: 20px; padding: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); margin-bottom: 15px; }
-        h3 { margin: 0 0 15px 0; font-size: 1.05em; color: var(--text-main); border-left: 4px solid var(--primary); padding-left: 10px; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        h2 { font-size: 1.3rem; margin: 0; font-weight: 700; color: var(--primary); }
+        .btn-back { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 8px 16px; border-radius: 12px; cursor: pointer; }
 
-        .info-group { display: flex; flex-direction: column; gap: 12px; }
-        .info-row { display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 1px solid #f8f9fa; }
-        .info-row:last-child { border-bottom: none; }
-        .label { color: var(--text-sub); font-size: 0.9em; font-weight: 500; }
-        .value { font-weight: 700; color: var(--text-main); font-size: 0.95em; }
-        .pt-highlight { color: var(--primary); font-size: 1.1em; }
+        .card { background: var(--card-bg); border-radius: 24px; padding: 24px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; animation: fadeIn 0.5s ease forwards; opacity: 0; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-        .memo-box { background: #f9f9f9; padding: 15px; border-radius: 12px; font-size: 0.95em; line-height: 1.6; border: 1px solid #eee; margin-top: 5px; min-height: 80px; white-space: pre-wrap; color: #444; }
-        textarea.memo-box { width: 100%; height: 120px; box-sizing: border-box; border: 1px solid var(--primary); font-family: inherit; resize: none; outline: none; padding: 12px; }
+        h3 { font-size: 1rem; margin: 0 0 20px 0; color: var(--text-sub); display: flex; align-items: center; gap: 8px; }
+        h3::before { content: ''; width: 4px; height: 16px; background: var(--primary); border-radius: 10px; }
 
-        /* 출석 이력 스타일 */
-        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: #fff; border-bottom: 1px solid #f1f1f1; }
-        .history-item:last-child { border-bottom: none; }
-        .history-item.latest { background: #f0fdf4; border-left: 4px solid var(--primary); }
-        .history-date { font-weight: 600; font-size: 0.95em; }
-        .time-tag { background: #e8f5e9; color: #2e7d32; padding: 4px 10px; border-radius: 6px; font-weight: 700; font-size: 0.85em; }
+        .info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .info-row.column { flex-direction: column; gap: 8px; } /* 주소처럼 긴 항목용 */
+        .label { color: var(--text-sub); font-size: 0.9rem; }
+        .value { font-weight: 600; }
 
-        #loadingLayer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 10000; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        .loading-bar-container { width: 180px; height: 4px; background: #eee; border-radius: 10px; overflow: hidden; margin-top: 15px; }
-        .loading-bar { width: 0%; height: 100%; background: var(--primary); transition: width 0.3s ease; }
-
-        .btn-edit { padding: 5px 12px; border-radius: 8px; border: 1px solid #ddd; background: #fff; font-size: 11px; cursor: pointer; font-weight: 600; }
-        .btn-save { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 10px; font-weight: 700; cursor: pointer; margin-top: 10px; }
-
-        #saveModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center; }
-        .modal-content { background: #fff; padding: 25px; border-radius: 20px; text-align: center; width: 260px; }
+        .btn-delete { width: 100%; background: none; color: var(--danger); border: 1px solid var(--danger); padding: 12px; border-radius: 15px; font-weight: 600; cursor: pointer; margin-top: 20px; opacity: 0.7; }
     </style>
 </head>
 <body>
+    <div id="mainLoaderContainer"><div id="mainProgressBar"></div></div>
 
-<div id="loadingLayer">
-    <div style="font-weight:600; color:#666; font-size:0.9em;">회원 정보를 불러오는 중...</div>
-    <div class="loading-bar-container"><div id="mainProgressBar" class="loading-bar"></div></div>
-</div>
+    <div class="container">
+        <header>
+            <h2>회원 상세 프로필</h2>
+            <button class="btn-back" onclick="location.href='index.html'">← 목록</button>
+        </header>
 
-<div class="container" id="mainContent" style="visibility: hidden;">
-    <header>
-        <h2>상세 정보</h2>
-        <button class="btn-back" onclick="location.href='index.html'">← 목록</button>
-    </header>
-
-    <div class="card">
-        <h3>기본 프로필</h3>
-        <div class="info-group">
+        <div class="card" style="animation-delay: 0.1s;">
+            <h3>기본 정보</h3>
             <div class="info-row"><span class="label">이름</span><span class="value" id="name">-</span></div>
             <div class="info-row"><span class="label">연락처</span><span class="value" id="phone">-</span></div>
-            <div class="info-row"><span class="label">잔여 수업</span><span class="value pt-highlight" id="pt">-</span></div>
-            <div class="info-row"><span class="label">주소</span><span class="value" id="addr">-</span></div>
-        </div>
-    </div>
-
-    <div class="card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-            <h3 style="margin:0;">PT 상세 정보</h3>
-            <button id="editBtn" class="btn-edit" onclick="toggleEdit()">메모 수정</button>
-        </div>
-        <div class="info-group">
-            <div class="info-row"><span class="label">키 / 몸무게</span><span class="value" id="body">-</span></div>
-            <div class="info-row"><span class="label">운동 목적</span><span class="value" id="goal">-</span></div>
-        </div>
-        <div style="margin-top:15px;">
-            <div class="label" style="margin-bottom:8px;">관리 메모</div>
-            <div id="memoView"><div id="memo" class="memo-box">기록 없음</div></div>
-            <div id="memoEdit" style="display:none;">
-                <textarea id="memoInput" class="memo-box"></textarea>
-                <button id="saveBtn" class="btn-save" onclick="saveMemo()">변경사항 저장</button>
+            <div class="info-row column">
+                <span class="label">주소</span>
+                <span class="value" id="address" style="font-weight: 400; color: #cbd5e1;">-</span>
+            </div>
+            <div class="info-row">
+                <span class="label">잔여 수업</span>
+                <span id="ptView" class="value" style="color:var(--primary); font-size: 1.1rem;">-</span>
             </div>
         </div>
+
+        <div class="card" style="animation-delay: 0.2s;">
+            <h3>PT 상세 및 메모</h3>
+            <div class="info-row">
+                <span class="label">신체 정보</span>
+                <span id="bodyView" class="value">-</span>
+            </div>
+            <div style="margin-top:20px;">
+                <div class="label" style="margin-bottom:10px;">관리 메모</div>
+                <div id="memoView" style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 15px; font-size: 0.95rem; color: #cbd5e1; border: 1px solid rgba(255,255,255,0.05); min-height: 80px; white-space: pre-wrap;">-</div>
+            </div>
+        </div>
+
+        <button class="btn-delete" onclick="askDelete()">회원 정보 삭제</button>
     </div>
 
-    <div class="card" style="padding: 15px 0;">
-        <h3 style="margin-left: 20px;">최근 출석 이력</h3>
-        <div id="histList"></div>
-    </div>
-</div>
+    <script>
+        const API = "https://script.google.com/macros/s/AKfycbyDxpufb43p7KP9LrrANZm4wFnyHFiMuKrJu9fjnsBA6kcbXu-QKvK3-VydebDBZXKK/exec"; 
+        const memberId = new URLSearchParams(window.location.search).get('id');
 
-<div id="saveModal">
-    <div class="modal-content">
-        <div style="font-size: 2.5em; margin-bottom: 10px;">✅</div>
-        <h3>저장 완료</h3>
-        <button onclick="closeSaveModal()" class="btn-save">확인</button>
-    </div>
-</div>
-
-<script>
-    const API = "https://script.google.com/macros/s/AKfycbw1Skb_N7XGlpKPEt78LBGrGN13jL7m0Npu5Htw-D1pG1knNr58IlubiOBDQe5nsjNN/exec";
-    const memberId = new URLSearchParams(window.location.search).get('id');
-    let isEditing = false;
-
-    function formatKSTDate(dateVal) {
-        if (!dateVal) return "-";
-        const d = new Date(dateVal);
-        if (isNaN(d.getTime())) return dateVal;
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${y}-${m}-${day}`;
-    }
-
-    async function load() {
-        const prog = document.getElementById('mainProgressBar');
-        try {
-            prog.style.width = "30%";
-            const [mRes, cRes] = await Promise.all([
-                fetch(`${API}?action=members`).then(r => { prog.style.width = "60%"; return r.json(); }),
-                fetch(`${API}?action=calendar&memberId=${memberId}`).then(r => { prog.style.width = "80%"; return r.json(); })
-            ]);
-
-            const m = mRes.data.find(i => String(i.id) === String(memberId));
-            if (m) {
-                document.getElementById('name').innerText = m.name;
-                document.getElementById('phone').innerText = m.phone || "-";
-                document.getElementById('pt').innerText = m.pt + "회 남음";
-                document.getElementById('addr').innerText = m.address || "미입력";
-                document.getElementById('body').innerText = (m.height && m.weight) ? `${m.height}cm / ${m.weight}kg` : "정보 없음";
-                document.getElementById('goal').innerText = m.goal || "미정";
-                document.getElementById('memo').innerText = m.memo || "기록 없음";
-                document.getElementById('memoInput').value = m.memo || "";
+        async function load() {
+            const bar = document.getElementById('mainProgressBar');
+            try {
+                bar.style.width = "40%";
+                const res = await fetch(`${API}?action=members`);
+                const json = await res.json();
+                bar.style.width = "80%";
+                
+                const m = json.data.find(i => String(i.id) === String(memberId));
+                
+                if (m) {
+                    document.getElementById('name').innerText = m.name;
+                    document.getElementById('phone').innerText = m.phone;
+                    // 주소 데이터 연결 (m.address)
+                    document.getElementById('address').innerText = m.address || "등록된 주소 없음";
+                    document.getElementById('ptView').innerText = m.pt + "회 남음";
+                    document.getElementById('bodyView').innerText = `${m.height || 0}cm / ${m.weight || 0}kg`;
+                    document.getElementById('memoView').innerText = m.memo || "내용 없음";
+                }
+                
+                bar.style.width = "100%";
+                setTimeout(() => { bar.style.width = "0%"; }, 500);
+            } catch (e) {
+                alert("정보를 불러오는데 실패했습니다.");
             }
+        }
 
-            const hData = cRes.data || [];
-            if (hData.length > 0) {
-                // [정렬 수정] 시간까지 포함하여 내림차순(최신순) 정렬
-                hData.sort((a, b) => {
-                    const dtA = new Date(a.date + ' ' + (a.time || '00:00'));
-                    const dtB = new Date(b.date + ' ' + (b.time || '00:00'));
-                    return dtB - dtA; // 숫자가 클수록(최신일수록) 위로
-                });
-
-                document.getElementById('histList').innerHTML = hData.map((h, idx) => `
-                    <div class="history-item ${idx === 0 ? 'latest' : ''}">
-                        <span class="history-date">${idx === 0 ? '🔥' : '📅'} ${formatKSTDate(h.date)}</span>
-                        <span class="time-tag">⏰ ${h.time}</span>
-                    </div>
-                `).join('');
-            } else {
-                document.getElementById('histList').innerHTML = '<div style="text-align:center; color:#999; padding:20px;">이력이 없습니다.</div>';
+        async function askDelete() {
+            if(confirm("정말 삭제하시겠습니까?")) {
+                const res = await fetch(API, { method: 'POST', body: JSON.stringify({ action: "deleteMember", memberId }) });
+                const result = await res.json();
+                if(result.result === "success") { alert("삭제되었습니다."); location.href="index.html"; }
             }
+        }
 
-            prog.style.width = "100%";
-            setTimeout(() => {
-                document.getElementById('loadingLayer').style.display = 'none';
-                document.getElementById('mainContent').style.visibility = 'visible';
-            }, 300);
-
-        } catch (e) { alert("로드 실패"); }
-    }
-
-    function toggleEdit() {
-        isEditing = !isEditing;
-        document.getElementById('memoView').style.display = isEditing ? 'none' : 'block';
-        document.getElementById('memoEdit').style.display = isEditing ? 'block' : 'none';
-        document.getElementById('editBtn').innerText = isEditing ? '수정 취소' : '메모 수정';
-    }
-
-    async function saveMemo() {
-        const newMemo = document.getElementById('memoInput').value;
-        const btn = document.getElementById('saveBtn');
-        btn.disabled = true; btn.innerText = "저장 중...";
-        try {
-            const res = await fetch(API, { method: 'POST', body: JSON.stringify({ action: "updateMemo", memberId, memo: newMemo }) });
-            const result = await res.json();
-            if (result.result === "success") {
-                document.getElementById('memo').innerText = newMemo || "기록 없음";
-                toggleEdit();
-                document.getElementById('saveModal').style.display = 'flex';
-            }
-        } catch (e) { alert("저장 실패"); }
-        btn.disabled = false; btn.innerText = "변경사항 저장";
-    }
-
-    function closeSaveModal() { document.getElementById('saveModal').style.display = 'none'; }
-    if (memberId) load();
-</script>
+        if (memberId) load();
+    </script>
 </body>
 </html>
