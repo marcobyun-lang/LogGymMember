@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>PT 잔여 현황</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        if (sessionStorage.getItem("admin") !== "1") location.href = "admin.html";
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Pretendard', sans-serif; background: #f8f9fa; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .member-row { background: #fff; border-radius: 12px; padding: 15px; margin-bottom: 10px; display: flex; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .name-box { width: 80px; font-weight: 700; flex-shrink: 0; }
+        .chart-container { flex-grow: 1; height: 25px; margin: 0 15px; }
+        .pt-label { width: 50px; text-align: right; font-weight: 600; color: #4caf50; }
+        .btn-back { background: #fff; border: 1px solid #ddd; padding: 8px 16px; border-radius: 8px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h2>PT 잔여 리포트</h2>
+            <button class="btn-back" onclick="location.href='index.html'">← 뒤로</button>
+        </header>
+        <div id="reportList"></div>
+    </div>
+
+    <script>
+        const API = "https://script.google.com/macros/s/AKfycbxhSwrWr9LiYifevP3_9_FWKYZMct_z2uQcbLtUdBwJ77pehLlla7-XViDbZj1LZ8eM/exec";
+
+        async function load() {
+            const res = await fetch(`${API}?action=members`);
+            const json = await res.json();
+            const members = json.data || [];
+            const container = document.getElementById("reportList");
+
+            members.forEach((m, i) => {
+                const pt = Number(m.pt || 0);
+                const row = document.createElement("div");
+                row.className = "member-row";
+                row.innerHTML = `
+                    <div class="name-box">${m.name}</div>
+                    <div class="chart-container"><canvas id="chart-${i}"></canvas></div>
+                    <div class="pt-label">${pt}회</div>
+                `;
+                container.appendChild(row);
+
+                new Chart(document.getElementById(`chart-${i}`), {
+                    type: 'bar',
+                    data: {
+                        labels: [''],
+                        datasets: [{
+                            data: [pt],
+                            backgroundColor: pt <= 3 ? '#ff5252' : '#4caf50',
+                            borderRadius: 10
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { x: { display: false, max: 30 }, y: { display: false } }
+                    }
+                });
+            });
+        }
+        load();
+    </script>
+</body>
+</html>

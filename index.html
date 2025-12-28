@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>PT 회원 관리</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>if (sessionStorage.getItem("admin") !== "1") location.href = "admin.html";</script>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #4caf50; --bg: #f8f9fa; --danger: #ff5252; }
+        body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .nav-buttons { display: flex; gap: 10px; margin-bottom: 20px; }
+        .nav-btn { flex: 1; padding: 15px; border-radius: 12px; border: none; background: #fff; font-weight: 600; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .search-box { width: 100%; padding: 15px; border: 1px solid #ddd; border-radius: 12px; margin-bottom: 20px; box-sizing: border-box; font-size: 16px; }
+        .member-card { background: #fff; padding: 20px; border-radius: 16px; margin-bottom: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.03); }
+        .card-top { display: flex; justify-content: space-between; margin-bottom: 10px; }
+        .name { font-size: 1.1em; font-weight: 700; }
+        .pt-count { font-weight: 700; color: var(--primary); }
+        .pt-count.low { color: var(--danger); }
+        .list-prog-container { background: #eee; border-radius: 5px; height: 6px; width: 100%; overflow: hidden; margin-bottom: 15px; }
+        .list-prog-bar { background: var(--primary); height: 100%; width: 0%; transition: width 0.5s ease; }
+        .actions { display: flex; gap: 8px; justify-content: flex-end; }
+        button { padding: 10px 16px; border-radius: 8px; border: none; cursor: pointer; font-weight: 600; }
+        .btn-check { background: var(--primary); color: white; }
+        .btn-detail { background: #eee; color: #666; }
+        #modalOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+        .modal { background: #fff; padding: 30px; border-radius: 20px; width: 85%; max-width: 350px; text-align: center; }
+        .prog-container { display: none; background: #eee; border-radius: 10px; height: 10px; margin: 20px 0; overflow: hidden; }
+        .prog-bar { background: var(--primary); height: 100%; width: 0%; transition: width 0.3s ease; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="nav-buttons">
+        <button class="nav-btn" onclick="location.href='status.html'">📊 잔여 현황</button>
+        <button class="nav-btn" onclick="location.href='add.html'">👤 회원 등록</button>
+    </div>
+    <input type="text" id="search" class="search-box" placeholder="이름 검색..." oninput="render()">
+    <div id="loading" style="text-align:center; padding:50px; color:#999;">데이터 로드 중...</div>
+    <div id="memberList"></div>
+</div>
+
+<div id="modalOverlay"><div class="modal">
+    <h3 id="mTitle">출석 체크</h3><p id="mMsg"></p>
+    <div class="prog-container" id="mProg"><div class="prog-bar" id="mBar"></div></div>
+    <div class="actions" id="mBtns">
+        <button onclick="closeModal()">취소</button>
+        <button id="mConfirm" style="background:var(--primary); color:white;">확인</button>
+    </div>
+</div></div>
+
+<script>
+    const API = "https://script.google.com/macros/s/AKfycbxhSwrWr9LiYifevP3_9_FWKYZMct_z2uQcbLtUdBwJ77pehLlla7-XViDbZj1LZ8eM/exec";
+    let members = [];
+    let selected = null;
+
+    async function load() {
+        try {
+            const res = await fetch(`${API}?action=members`);
+            const json = await res.json();
+            members = json.data || [];
+            document.getElementById("loading").style.display = "none";
+            render();
+        } catch (e) { alert("연결 실패"); }
+    }
+
+    function render() {
+        const list = document.getElementById("memberList");
+        const query = document.getElementById("search").value.toLowerCase();
+        list.innerHTML = "";
+        members.filter(m => m.name.toLowerCase().includes(query)).forEach(m => {
+            const pt = Number(m.pt || 0);
+            const per = Math.min((pt/30)*100, 100);
+            const div = document.createElement("div");
+            div.className = "member-card";
+            div.innerHTML = `
+                <div class="card-top"><span class="name">${m.name}</span><span class="pt-count ${pt<=3?'low':''}" id="pt-v-${m.id}">잔여: ${pt}회</span></div>
+                <div class="list-prog-container"><div class="list-prog-bar" id="pt-b-${m.id}" style="width:${per}%; ${pt<=3?'background:var(--danger)':''}"></div></div>
+                <div class="actions">
+                    <button class="btn-check" onclick="openModal('${m.id}')">출석</button>
+                    <button class="btn-detail" onclick="location.href='member.html?id=${m.id}'">상세</button>
+                </div>`;
+            list.appendChild(div);
+        });
+    }
+
+    function openModal(id) {
+        selected = members.find(m => String(m.id) === String(id));
+        if (selected.pt <= 0) { alert("잔여 횟수가 없습니다."); return; }
+        document.getElementById('mMsg').innerText = `${selected.name}님 (현재 ${selected.pt}회) 출석하시겠습니까?`;
+        document.getElementById('mBar').style.width = '0%';
+        document.getElementById('mProg').style.display = 'none';
+        document.getElementById('mBtns').style.display = 'flex';
+        document.getElementById('modalOverlay').style.display = 'flex';
+        document.getElementById('mConfirm').onclick = async () => {
+            document.getElementById('mBtns').style.display = 'none';
+            document.getElementById('mProg').style.display = 'block';
+            setTimeout(() => document.getElementById('mBar').style.width = '70%', 100);
+            const res = await fetch(`${API}?action=checkin&memberId=${id}`);
+            const r = await res.json();
+            if(r.result === "success") {
+                document.getElementById('mBar').style.width = '100%';
+                selected.pt -= 1;
+                render(); // 화면 즉시 업데이트
+                setTimeout(closeModal, 600);
+            }
+        };
+    }
+    function closeModal() { document.getElementById('modalOverlay').style.display = 'none'; }
+    load();
+</script>
+</body>
+</html>

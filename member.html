@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>회원 상세 정보</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        if (sessionStorage.getItem("admin") !== "1") location.href = "admin.html";
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #4caf50; --bg: #f8f9fa; }
+        body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 500px; margin: 0 auto; }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .card { background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        h3 { margin: 0 0 15px 0; font-size: 1.1em; border-left: 4px solid var(--primary); padding-left: 10px; }
+        
+        /* 정보 레이아웃 */
+        .info-item { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f2f2f2; }
+        .info-item:last-child { border-bottom: none; }
+        .label { color: #888; font-weight: 600; }
+        .value { font-weight: 700; text-align: right; }
+        .pt-value { color: var(--primary); font-size: 1.1em; }
+
+        /* 로딩 프로그레스 바 스타일 */
+        #loadingLayer { 
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(248, 249, 250, 0.9); z-index: 10000; 
+            display: flex; flex-direction: column; justify-content: center; align-items: center; 
+        }
+        .loading-bar-container { width: 200px; height: 6px; background: #eee; border-radius: 10px; overflow: hidden; margin-top: 15px; }
+        .loading-bar { width: 0%; height: 100%; background: var(--primary); transition: width 0.3s ease; }
+        .loading-text { font-weight: 600; color: #666; font-size: 0.9em; }
+
+        /* 메모 및 기타 스타일 */
+        .memo-box { background: #f9f9f9; padding: 15px; border-radius: 10px; font-size: 0.95em; line-height: 1.6; border: 1px solid #eee; margin-top: 10px; min-height: 80px; white-space: pre-wrap; }
+        textarea.memo-box { width: 100%; height: 120px; box-sizing: border-box; border: 1px solid var(--primary); font-family: inherit; resize: none; outline: none; }
+        .btn-back { background: #fff; border: 1px solid #ddd; padding: 8px 18px; border-radius: 10px; cursor: pointer; font-weight: 600; }
+        .btn-edit { padding: 5px 12px; border-radius: 8px; border: 1px solid #ddd; background: #fff; font-size: 12px; cursor: pointer; font-weight: 600; }
+        .btn-save { width: 100%; background: var(--primary); color: white; border: none; padding: 12px; border-radius: 10px; margin-top: 10px; font-weight: 700; cursor: pointer; }
+
+        /* 저장 완료 팝업 */
+        #saveModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center; }
+        .modal-content { background: #fff; padding: 30px; border-radius: 24px; text-align: center; width: 80%; max-width: 300px; }
+    </style>
+</head>
+<body>
+
+<div id="loadingLayer">
+    <div class="loading-text" id="loadingMsg">데이터를 불러오는 중...</div>
+    <div class="loading-bar-container">
+        <div id="mainProgressBar" class="loading-bar"></div>
+    </div>
+</div>
+
+<div class="container" id="mainContent" style="visibility: hidden;">
+    <header>
+        <h2>회원 정보 상세</h2>
+        <button class="btn-back" onclick="location.href='index.html'">← 목록</button>
+    </header>
+
+    <div class="card">
+        <h3>기본 프로필</h3>
+        <div class="info-item"><span class="label">이름</span><span class="value" id="name">-</span></div>
+        <div class="info-item"><span class="label">연락처</span><span class="value" id="phone">-</span></div>
+        <div class="info-item"><span class="label">잔여 PT</span><span class="value pt-value" id="pt">-</span></div>
+        <div class="info-item"><span class="label">주소</span><span class="value" id="addr">-</span></div>
+    </div>
+
+    <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+            <h3 style="margin:0;">PT 상세 정보</h3>
+            <button id="editBtn" class="btn-edit" onclick="toggleEdit()">메모 수정</button>
+        </div>
+        <div class="info-item"><span class="label">키 / 몸무게</span><span class="value" id="body">-</span></div>
+        <div class="info-item"><span class="label">운동 목적</span><span class="value" id="goal">-</span></div>
+        <div id="memoView"><div id="memo" class="memo-box">기록 없음</div></div>
+        <div id="memoEdit" style="display:none;">
+            <textarea id="memoInput" class="memo-box"></textarea>
+            <button id="saveBtn" class="btn-save" onclick="saveMemo()">변경사항 저장</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>최근 출석 이력</h3>
+        <div id="histList" style="text-align:center; color:#999; padding:20px;">이력을 불러오는 중...</div>
+    </div>
+</div>
+
+<div id="saveModal"><div class="modal-content"><h3>✅ 저장 완료</h3><button onclick="closeSaveModal()" class="btn-save">확인</button></div></div>
+
+<script>
+    const API = "https://script.google.com/macros/s/AKfycbxhSwrWr9LiYifevP3_9_FWKYZMct_z2uQcbLtUdBwJ77pehLlla7-XViDbZj1LZ8eM/exec";
+    const urlParams = new URLSearchParams(window.location.search);
+    const memberId = urlParams.get('id');
+    let isEditing = false;
+
+    async function load() {
+        const prog = document.getElementById('mainProgressBar');
+        try {
+            // 1단계: 통신 시작
+            prog.style.width = "30%";
+            
+            const [mRes, cRes] = await Promise.all([
+                fetch(`${API}?action=members`).then(r => { prog.style.width = "60%"; return r.json(); }),
+                fetch(`${API}?action=calendar&memberId=${memberId}`).then(r => { prog.style.width = "80%"; return r.json(); })
+            ]);
+
+            // 2단계: 데이터 매핑
+            const m = mRes.data.find(i => String(i.id) === String(memberId));
+            if (m) {
+                document.getElementById('name').innerText = m.name;
+                document.getElementById('phone').innerText = m.phone;
+                document.getElementById('pt').innerText = m.pt + "회 남음";
+                document.getElementById('addr').innerText = m.address || "미입력";
+                document.getElementById('body').innerText = (m.height && m.weight) ? `${m.height}cm / ${m.weight}kg` : "정보 없음";
+                document.getElementById('goal').innerText = m.goal || "미정";
+                document.getElementById('memo').innerText = m.memo || "기록 없음";
+                document.getElementById('memoInput').value = m.memo || "";
+            }
+
+            const hData = cRes.data || [];
+            document.getElementById('histList').innerHTML = hData.length ? hData.reverse().map(h => `<div class="history-item"><span>📅 ${h.date}</span><span class="time-tag">⏰ ${h.time}</span></div>`).join('') : "이력이 없습니다.";
+
+            // 3단계: 완료
+            prog.style.width = "100%";
+            setTimeout(() => {
+                document.getElementById('loadingLayer').style.display = 'none';
+                document.getElementById('mainContent').style.visibility = 'visible';
+            }, 300);
+
+        } catch (e) { 
+            document.getElementById('loadingMsg').innerText = "데이터를 불러오지 못했습니다.";
+            alert("로드 실패"); 
+        }
+    }
+
+    function toggleEdit() {
+        isEditing = !isEditing;
+        document.getElementById('memoView').style.display = isEditing ? 'none' : 'block';
+        document.getElementById('memoEdit').style.display = isEditing ? 'block' : 'none';
+        document.getElementById('editBtn').innerText = isEditing ? '수정 취소' : '메모 수정';
+    }
+
+    async function saveMemo() {
+        const newMemo = document.getElementById('memoInput').value;
+        const btn = document.getElementById('saveBtn');
+        btn.disabled = true; btn.innerText = "저장 중...";
+        
+        const res = await fetch(API, { method: 'POST', body: JSON.stringify({ action: "updateMemo", memberId, memo: newMemo }) });
+        const result = await res.json();
+        if (result.result === "success") {
+            document.getElementById('memo').innerText = newMemo || "기록 없음";
+            toggleEdit();
+            document.getElementById('saveModal').style.display = 'flex';
+        }
+        btn.disabled = false; btn.innerText = "변경사항 저장";
+    }
+
+    function closeSaveModal() { document.getElementById('saveModal').style.display = 'none'; }
+
+    if (memberId) load();
+</script>
+</body>
+</html>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>신규 회원 등록</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        if (sessionStorage.getItem("admin") !== "1") location.href = "admin.html";
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root { --primary: #4caf50; --bg: #f8f9fa; }
+        body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #333; }
+        .container { max-width: 500px; margin: 0 auto; }
+        .card { background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 8px; color: #555; }
+        input, select, textarea { 
+            width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; 
+            box-sizing: border-box; font-size: 16px; font-family: inherit;
+        }
+        .row { display: flex; gap: 10px; }
+        .row > div { flex: 1; }
+        
+        .btn-submit { 
+            width: 100%; background: var(--primary); color: white; border: none; 
+            padding: 16px; border-radius: 12px; font-size: 18px; font-weight: 700; 
+            cursor: pointer; margin-top: 20px; transition: 0.3s;
+        }
+        .btn-submit:disabled { background: #ccc; }
+        .btn-back { background: #fff; border: 1px solid #ddd; padding: 8px 18px; border-radius: 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h2>신규 회원 등록</h2>
+            <button class="btn-back" onclick="location.href='index.html'">취소</button>
+        </header>
+
+        <div class="card">
+            <form id="addForm">
+                <div class="form-group">
+                    <label>이름 *</label>
+                    <input type="text" id="name" required placeholder="홍길동">
+                </div>
+                <div class="form-group">
+                    <label>연락처 *</label>
+                    <input type="tel" id="phone" required placeholder="010-0000-0000">
+                </div>
+                <div class="form-group">
+                    <label>주소</label>
+                    <input type="text" id="address" placeholder="시/구/동 까지만 입력 가능">
+                </div>
+                <div class="row">
+                    <div class="form-group">
+                        <label>키 (cm)</label>
+                        <input type="number" id="height" step="0.1" placeholder="175.5">
+                    </div>
+                    <div class="form-group">
+                        <label>몸무게 (kg)</label>
+                        <input type="number" id="weight" step="0.1" placeholder="70.2">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>PT 등록 횟수 *</label>
+                    <input type="number" id="pt" value="30" required>
+                </div>
+                <div class="form-group">
+                    <label>운동 목적</label>
+                    <select id="goal">
+                        <option value="다이어트">다이어트</option>
+                        <option value="근력 증강">근력 증강</option>
+                        <option value="체형 교정">체형 교정</option>
+                        <option value="바디 프로필">바디 프로필</option>
+                        <option value="기타">기타</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>특이사항 (질환 등)</label>
+                    <textarea id="memo" rows="3" placeholder="허리 디스크 있음 등"></textarea>
+                </div>
+
+                <button type="submit" id="submitBtn" class="btn-submit">등록 완료</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API = "https://script.google.com/macros/s/AKfycbxhSwrWr9LiYifevP3_9_FWKYZMct_z2uQcbLtUdBwJ77pehLlla7-XViDbZj1LZ8eM/exec";
+
+        document.getElementById('addForm').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.innerText = "등록 중...";
+
+            const payload = {
+                action: "addMember",
+                name: document.getElementById('name').value,
+                phone: document.getElementById('phone').value,
+                address: document.getElementById('address').value,
+                height: document.getElementById('height').value,
+                weight: document.getElementById('weight').value,
+                pt: document.getElementById('pt').value,
+                goal: document.getElementById('goal').value,
+                memo: document.getElementById('memo').value
+            };
+
+            try {
+                const res = await fetch(API, {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                const result = await res.json();
+
+                if (result.result === "success") {
+                    alert("회원이 성공적으로 등록되었습니다.");
+                    location.href = "index.html";
+                } else {
+                    alert("오류: " + result.message);
+                    btn.disabled = false;
+                    btn.innerText = "등록 완료";
+                }
+            } catch (err) {
+                alert("서버 통신 오류");
+                btn.disabled = false;
+                btn.innerText = "등록 완료";
+            }
+        };
+    </script>
+</body>
+</html>

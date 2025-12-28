@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>관리자 로그인 | Gym Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body { 
+    background:#111; 
+    color:#fff; 
+    font-family:'Pretendard', sans-serif; 
+    display:flex; 
+    justify-content:center; 
+    align-items:center; 
+    height:100vh; 
+    margin:0; 
+  }
+  .box { 
+    background:#222; 
+    padding:30px; 
+    border-radius:16px; 
+    width:300px; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+  }
+  h3 { margin-top:0; text-align:center; color:#4caf50; letter-spacing: 2px; }
+  input { 
+    width:100%; 
+    padding:12px; 
+    margin-top:10px; 
+    background:#333; 
+    border:1px solid #444; 
+    color:#fff; 
+    border-radius:8px; 
+    box-sizing:border-box; 
+  }
+  input:focus { outline: none; border-color: #4caf50; }
+  button { 
+    width:100%; 
+    padding:12px; 
+    margin-top:20px; 
+    background:#4caf50; 
+    border:none; 
+    color:#fff; 
+    font-weight:bold; 
+    border-radius:8px; 
+    cursor:pointer; 
+    transition:0.3s; 
+  }
+  button:hover { background: #388e3c; }
+  button:disabled { background:#555; cursor:not-allowed; }
+  
+  /* Progress Bar 스타일 */
+  .progress-container { 
+    width:100%; 
+    background:#333; 
+    height:4px; 
+    border-radius:2px; 
+    margin-top:15px; 
+    display:none; 
+    overflow:hidden; 
+  }
+  .progress-bar { 
+    width:0%; 
+    height:100%; 
+    background:#4caf50; 
+    transition:width 0.3s; 
+  }
+</style>
+</head>
+<body>
+
+<div class="box">
+  <h3>GYM ADMIN</h3>
+  <input id="userId" placeholder="아이디">
+  <input id="userPw" type="password" placeholder="비밀번호">
+  <button id="loginBtn" onclick="login()">로그인</button>
+  
+  <div class="progress-container" id="progBox">
+    <div class="progress-bar" id="progBar"></div>
+  </div>
+</div>
+
+<script>
+// 제공해주신 API 주소 활용
+const API_URL = "https://script.google.com/macros/s/AKfycbxhSwrWr9LiYifevP3_9_FWKYZMct_z2uQcbLtUdBwJ77pehLlla7-XViDbZj1LZ8eM/exec";
+
+function login() {
+  const idValue = document.getElementById("userId").value;
+  const pwValue = document.getElementById("userPw").value;
+  const btn = document.getElementById("loginBtn");
+  const progBox = document.getElementById("progBox");
+  const progBar = document.getElementById("progBar");
+
+  if(!idValue || !pwValue) {
+    alert("아이디와 비밀번호를 모두 입력해주세요.");
+    return;
+  }
+
+  // UI 피드백 시작
+  btn.disabled = true;
+  progBox.style.display = "block";
+  progBar.style.width = "40%";
+
+  fetch(API_URL, {
+    method: "POST",
+    body: JSON.stringify({ 
+      action: "login", 
+      id: idValue, 
+      password: pwValue // 구글 시트 컬럼명과 일치시킴
+    })
+  })
+  .then(r => r.json())
+  .then(res => {
+    progBar.style.width = "100%";
+    if (res.result === "success") {
+      sessionStorage.setItem("admin", "1");
+      // 상세 페이지가 아닌 회원 관리 대시보드로 이동
+      location.href = "index.html"; 
+    } else {
+      alert("아이디 또는 비밀번호가 틀립니다.");
+      resetUI();
+    }
+  })
+  .catch(err => {
+    console.error(err);
+    alert("서버와 통신 중 오류가 발생했습니다.");
+    resetUI();
+  });
+
+  function resetUI() {
+    btn.disabled = false;
+    progBox.style.display = "none";
+    progBar.style.width = "0%";
+  }
+}
+
+// 엔터키 로그인 지원
+document.addEventListener('keypress', function (e) {
+  if (e.key === 'Enter') login();
+});
+</script>
+
+</body>
+</html>

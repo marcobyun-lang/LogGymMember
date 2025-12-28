@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>출석 달력</title>
+
+<style>
+body {
+  font-family:Pretendard, Arial;
+  padding:20px;
+}
+.calendar {
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  gap:6px;
+}
+.day {
+  border:1px solid #ddd;
+  min-height:80px;
+  padding:6px;
+}
+.attend {
+  background:#111;
+  color:#fff;
+  font-size:12px;
+  margin-top:4px;
+}
+</style>
+</head>
+
+<body>
+
+<h2 id="title"></h2>
+<div class="calendar" id="cal"></div>
+
+<h3>PT 사용 내역</h3>
+<ul id="history"></ul>
+
+<script>
+fetch(API_URL + "?action=ptHistory&memberId=" + memberId)
+  .then(r=>r.json())
+  .then(j=>{
+    history.innerHTML = "";
+    j.data.forEach(h=>{
+      history.innerHTML += `<li>${h.date} - ${h.used}회</li>`;
+    });
+  });
+</script>
+
+<script>
+const API_URL =
+"https://script.google.com/macros/s/AKfycbxhSwrWr9LiYifevP3_9_FWKYZMct_z2uQcbLtUdBwJ77pehLlla7-XViDbZj1LZ8eM/exec";
+
+const p = new URLSearchParams(location.search);
+const id = p.get("id");
+const name = p.get("name");
+title.innerText = decodeURIComponent(name)+" 출석 기록";
+
+const now = new Date();
+const y = now.getFullYear();
+const m = now.getMonth();
+
+fetch(API_URL+"?action=calendar&memberId="+id)
+  .then(r=>r.json())
+  .then(j=>draw(j.data));
+
+function draw(att) {
+  cal.innerHTML="";
+  const f = new Date(y,m,1).getDay();
+  const last = new Date(y,m+1,0).getDate();
+  for(let i=0;i<f;i++) cal.innerHTML+="<div></div>";
+
+  for(let d=1;d<=last;d++){
+    const ds = y+"-"+String(m+1).padStart(2,"0")+"-"+String(d).padStart(2,"0");
+    const logs = att.filter(a=>a.date===ds);
+    cal.innerHTML+=`
+      <div class="day">
+        <b>${d}</b>
+        ${logs.map(l=>`<div class="attend">${l.time}</div>`).join("")}
+      </div>
+    `;
+  }
+}
+
+fetch(API_URL+"?action=ptHistory&memberId="+id)
+  .then(r=>r.json())
+  .then(j=>{
+    j.data.forEach(h=>{
+      history.innerHTML+=`<li>${h.date} - ${h.used}회</li>`;
+    });
+  });
+</script>
+
+</body>
+</html>
