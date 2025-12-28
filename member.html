@@ -10,86 +10,75 @@
         :root { --bg: #0f172a; --card-bg: #1e293b; --primary: #22c55e; --danger: #ef4444; --text-main: #f8fafc; --text-sub: #94a3b8; }
         body { font-family: 'Pretendard', sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 20px; }
         .container { max-width: 500px; margin: 0 auto; }
-        #mainProgressBar { position: fixed; top: 0; left: 0; width: 0%; height: 4px; background: var(--primary); transition: width 0.3s; }
-        .info-card { background: var(--card-bg); border-radius: 20px; padding: 25px; border: 1px solid rgba(255,255,255,0.05); }
-        .info-row { margin-bottom: 20px; }
-        .label { font-size: 0.85rem; color: var(--text-sub); display: block; margin-bottom: 5px; }
-        .value { font-size: 1.1rem; font-weight: 600; }
-        .edit-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: white; display: none; margin-top: 5px; box-sizing: border-box; }
-        .btn-group { display: flex; gap: 10px; margin-top: 30px; }
-        .btn { flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; }
-        .btn-edit { background: var(--primary); color: #000; }
-        .btn-save { background: #3b82f6; color: #fff; display: none; }
-        .btn-del { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); }
-        #view_phone_link { border-bottom: 1px dashed var(--text-sub); padding-bottom: 2px; }
+        #mainProgressBar { position: fixed; top: 0; left: 0; width: 0%; height: 4px; background: var(--primary); transition: width 0.3s; z-index: 1000; }
+        .info-card { background: var(--card-bg); border-radius: 20px; padding: 25px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; }
+        header { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; }
+        .back-btn { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
+        .label { color: var(--text-sub); font-size: 0.85rem; margin-bottom: 5px; display: block; }
+        .value { font-size: 1.1rem; font-weight: 600; margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .actions { display: flex; flex-direction: column; gap: 10px; }
+        .btn-check { width: 100%; padding: 16px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; color: #fff; text-decoration: none; display: block; text-align: center; box-sizing: border-box; }
+        .btn-edit { background: rgba(255,255,255,0.05); color: white; border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 10px; width: 100%; margin-top: 10px; cursor: pointer; }
+        
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; padding: 20px; box-sizing: border-box; }
+        .modal-content { background: var(--card-bg); border-radius: 20px; padding: 25px; max-width: 460px; margin: 20px auto; max-height: 90vh; overflow-y: auto; }
+        input, textarea { width: 100%; padding: 12px; margin: 8px 0 16px 0; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; font-family: inherit; }
     </style>
 </head>
 <body>
     <div id="mainProgressBar"></div>
     <div class="container">
-        <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <h2 id="headerName" style="margin:0;">회원 상세</h2>
-            <a href="index.html" style="color:var(--text-sub); text-decoration:none;">목록으로</a>
+        <header>
+            <button class="back-btn" onclick="location.href='index.html'">←</button>
+            <h2 id="nameTitle" style="margin:0">회원 상세</h2>
         </header>
 
         <div class="info-card">
-            <div class="info-row">
-                <span class="label">이름</span>
-                <div class="value" id="view_name">-</div>
-                <input type="text" id="edit_name" class="edit-input">
+            <div class="grid">
+                <div><span class="label">담당 트레이너</span><div class="value" id="view_teacher">-</div></div>
+                <div><span class="label">잔여 PT 횟수</span><div class="value" id="view_pt" style="color:var(--primary)">-회</div></div>
             </div>
+            <div class="grid">
+                <div><span class="label">키(cm)</span><div class="value" id="view_height">-</div></div>
+                <div><span class="label">몸무게(kg)</span><div class="value" id="view_weight">-</div></div>
+            </div>
+            <span class="label">연락처</span><div class="value" id="view_phone">-</div>
+            <span class="label">운동 목표</span><div class="value" id="view_goal">-</div>
+            <span class="label">메모</span><div class="value" id="view_memo" style="white-space:pre-wrap">-</div>
+            <button class="btn-edit" onclick="openEdit()">정보 수정하기</button>
+        </div>
 
-            <div class="info-row">
-                <span class="label">담당 선생님</span>
-                <div class="value" id="view_teacher">-</div>
-                <input type="text" id="edit_teacher" class="edit-input">
-            </div>
-            
-            <div class="info-row">
-                <span class="label">연락처 (터치 시 통화)</span>
-                <div class="value">
-                    <a id="view_phone_link" href="#" style="color:inherit; text-decoration:none;">-</a>
-                </div>
-                <input type="tel" id="edit_phone" class="edit-input">
-            </div>
+        <div class="actions">
+            <button class="btn-check" id="calBtn" style="background: #475569;">🗓 출석 달력 보기</button>
+            <button class="btn-check" id="inbodyBtn" style="background: #3b82f6;">📊 인바디 리포트</button>
+            <button class="btn-check" onclick="askDelete()" style="background: rgba(239, 68, 68, 0.1); color: var(--danger); margin-top: 10px;">회원 삭제</button>
+        </div>
+    </div>
 
-            <div class="info-row">
-                <span class="label">운동 목적</span>
-                <div class="value" id="view_goal">-</div>
-                <select id="edit_goal" class="edit-input">
-                    <option value="다이어트">🔥 다이어트</option>
-                    <option value="근력 향상">💪 근력 향상</option>
-                    <option value="체형 교정">🧘 체형 교정</option>
-                    <option value="바디 프로필">📸 바디 프로필</option>
-                    <option value="재활 및 통증 완화">🏥 재활 및 통증 완화</option>
-                    <option value="기타">✏️ 기타</option>
-                </select>
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0">상세 정보 수정</h3>
+            <label>담당 트레이너</label><input type="text" id="edit_teacher">
+            <label>잔여 PT 횟수</label><input type="number" id="edit_pt">
+            <label>연락처</label><input type="text" id="edit_phone">
+            <label>주소</label><input type="text" id="edit_address">
+            <div class="grid">
+                <div><label>키(cm)</label><input type="number" id="edit_height" step="0.1"></div>
+                <div><label>몸무게(kg)</label><input type="number" id="edit_weight" step="0.1"></div>
             </div>
-            <div class="info-row"><span class="label">잔여 PT</span><div class="value" id="view_pt">-</div><input type="number" id="edit_pt" class="edit-input"></div>
-            
-            <div class="info-row">
-                <span class="label">신체 정보 (cm/kg)</span>
-                <div class="value" id="view_body">-</div>
-                <div style="display:flex; gap:5px;">
-                    <input type="number" id="edit_height" class="edit-input" placeholder="키" style="flex:1;">
-                    <input type="number" id="edit_weight" class="edit-input" placeholder="몸무게" style="flex:1;">
-                </div>
-            </div>
-            <div class="info-row"><span class="label">주소</span><div class="value" id="view_address">-</div><input type="text" id="edit_address" class="edit-input"></div>
-            <div class="info-row"><span class="label">메모</span><div class="value" id="view_memo" style="white-space:pre-wrap;">-</div><textarea id="edit_memo" class="edit-input" rows="4"></textarea></div>
-
-            <div class="btn-group">
-                <button class="btn btn-edit" id="btnEdit" onclick="toggleEdit()">수정하기</button>
-                <button class="btn btn-save" id="btnSave" onclick="save()">저장하기</button>
-                <button class="btn btn-del" id="btnDelete" onclick="askDelete()">회원 삭제</button>
-            </div>
+            <label>운동 목표</label><input type="text" id="edit_goal">
+            <label>메모</label><textarea id="edit_memo" rows="4"></textarea>
+            <button class="btn-check" style="background:var(--primary)" id="saveBtn" onclick="saveEdit()">저장하기</button>
+            <button class="btn-edit" onclick="document.getElementById('editModal').style.display='none'">취소</button>
         </div>
     </div>
 
     <script>
-        const API = "https://script.google.com/macros/s/AKfycbyPcCcsW8NY-I4zYqhBWVFg0jzfFzgr51meoE14J_ReVCqAIJMXSqMzrvAxRbZDuX7q/exec";
+        const API = "https://script.google.com/macros/s/AKfycbwUU5njs_p4VY0gVVLw2b1ISQp9tSX_0AlQPz9FkQAqn73hMqEDQcAfvmP20lCUw6k9/exec";
         const urlParams = new URLSearchParams(window.location.search);
         const memberId = urlParams.get('id');
+        let currentMember = null;
 
         async function load() {
             const bar = document.getElementById('mainProgressBar');
@@ -97,79 +86,61 @@
             try {
                 const res = await fetch(`${API}?action=members`);
                 const json = await res.json();
-                const m = json.data.find(i => String(i.id) === String(memberId));
-                if (m) {
-                    document.getElementById('headerName').innerText = `${m.name} 회원님`;
-                    document.getElementById('view_name').innerText = m.name;
-                    document.getElementById('edit_name').value = m.name; // 로드시 입력창에도 값 넣기
-
-                    document.getElementById('view_teacher').innerText = m.teacher || "미지정";
-                    document.getElementById('edit_teacher').value = m.teacher || "";
+                currentMember = json.data.find(i => String(i.id) === String(memberId));
+                
+                if (currentMember) {
+                    document.getElementById('nameTitle').innerText = currentMember.name + " 회원님";
+                    document.getElementById('view_teacher').innerText = currentMember.teacher || "미지정";
+                    document.getElementById('view_pt').innerText = (currentMember.pt || 0) + "회";
+                    document.getElementById('view_phone').innerText = currentMember.phone || "-";
+                    document.getElementById('view_height').innerText = currentMember.height || "-";
+                    document.getElementById('view_weight').innerText = currentMember.weight || "-";
+                    document.getElementById('view_goal').innerText = currentMember.goal || "-";
+                    document.getElementById('view_memo').innerText = currentMember.memo || "-";
                     
-                    const phoneLink = document.getElementById('view_phone_link');
-                    phoneLink.innerText = m.phone;
-                    phoneLink.href = `tel:${m.phone}`;
-                    document.getElementById('edit_phone').value = m.phone;
-
-                    document.getElementById('view_goal').innerText = m.goal || "미설정";
-                    document.getElementById('edit_goal').value = m.goal || "다이어트";
-
-                    document.getElementById('view_pt').innerText = `${m.pt}회`;
-                    document.getElementById('edit_pt').value = m.pt;
-
-                    document.getElementById('view_body').innerText = `${m.height || 0}cm / ${m.weight || 0}kg`;
-                    document.getElementById('edit_height').value = m.height || "";
-                    document.getElementById('edit_weight').value = m.weight || "";
-
-                    document.getElementById('view_address').innerText = m.address || "-";
-                    document.getElementById('edit_address').value = m.address || "";
-
-                    document.getElementById('view_memo').innerText = m.memo || "내용 없음";
-                    document.getElementById('edit_memo').value = m.memo || "";
+                    document.getElementById('calBtn').onclick = () => location.href=`calendar.html?id=${memberId}&name=${encodeURIComponent(currentMember.name)}`;
+                    document.getElementById('inbodyBtn').onclick = () => location.href=`inbody.html?id=${memberId}`;
                 }
                 bar.style.width = "100%";
                 setTimeout(() => bar.style.width = "0", 500);
-            } catch (e) { alert("정보 로드 실패"); }
+            } catch (e) { alert("데이터 로딩 오류"); }
         }
 
-        function toggleEdit() {
-            const isEditing = document.getElementById('btnSave').style.display === 'block';
-            document.querySelectorAll('.value').forEach(v => v.style.display = isEditing ? 'block' : 'none');
-            document.querySelectorAll('.edit-input').forEach(e => e.style.display = isEditing ? 'none' : 'block');
-            document.getElementById('btnEdit').style.display = isEditing ? 'block' : 'none';
-            document.getElementById('btnSave').style.display = isEditing ? 'none' : 'block';
-            document.getElementById('btnDelete').style.display = isEditing ? 'block' : 'none';
+        function openEdit() {
+            if(!currentMember) return;
+            document.getElementById('edit_teacher').value = currentMember.teacher || "";
+            document.getElementById('edit_pt').value = currentMember.pt || 0;
+            document.getElementById('edit_phone').value = currentMember.phone || "";
+            document.getElementById('edit_address').value = currentMember.address || "";
+            document.getElementById('edit_height').value = currentMember.height || "";
+            document.getElementById('edit_weight').value = currentMember.weight || "";
+            document.getElementById('edit_goal').value = currentMember.goal || "";
+            document.getElementById('edit_memo').value = currentMember.memo || "";
+            document.getElementById('editModal').style.display = 'block';
         }
 
-        async function save() {
-            const btn = document.getElementById('btnSave');
-            btn.disabled = true;
-            btn.innerText = "저장 중...";
+        async function saveEdit() {
+            const btn = document.getElementById('saveBtn');
+            btn.disabled = true; btn.innerText = "저장 중...";
             const payload = {
                 action: "updateDetails",
                 memberId: memberId,
-                name: document.getElementById('edit_name').value, // 이름 데이터 추가
                 teacher: document.getElementById('edit_teacher').value,
-                phone: document.getElementById('edit_phone').value,
-                goal: document.getElementById('edit_goal').value,
                 pt: document.getElementById('edit_pt').value,
+                phone: document.getElementById('edit_phone').value,
+                address: document.getElementById('edit_address').value,
                 height: document.getElementById('edit_height').value,
                 weight: document.getElementById('edit_weight').value,
-                address: document.getElementById('edit_address').value,
+                goal: document.getElementById('edit_goal').value,
                 memo: document.getElementById('edit_memo').value
             };
             try {
                 const res = await fetch(API, { method: 'POST', body: JSON.stringify(payload) });
-                const result = await res.json();
-                if(result.result === "success") {
-                    alert("성공적으로 수정되었습니다.");
+                if((await res.json()).result === "success") {
+                    alert("정보가 수정되었습니다.");
                     location.reload();
-                } else {
-                    alert("저장 실패: " + result.message);
-                    btn.disabled = false;
-                    btn.innerText = "저장하기";
                 }
-            } catch (e) { alert("서버 통신 오류"); btn.disabled = false; btn.innerText = "저장하기"; }
+            } catch (e) { alert("저장 실패"); btn.disabled = false; btn.innerText = "저장하기"; }
         }
 
         async function askDelete() {
