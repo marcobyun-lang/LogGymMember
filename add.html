@@ -4,132 +4,63 @@
     <meta charset="UTF-8">
     <title>신규 회원 등록</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script>
-        if (sessionStorage.getItem("admin") !== "1") location.href = "admin.html";
-    </script>
+    <script>if (sessionStorage.getItem("admin") !== "1") location.href = "admin.html";</script>
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #4caf50; --bg: #f8f9fa; }
-        body { font-family: 'Pretendard', sans-serif; background: var(--bg); margin: 0; padding: 20px; color: #333; }
+        :root { --bg: #0f172a; --card-bg: #1e293b; --primary: #22c55e; --text-main: #f8fafc; --text-sub: #94a3b8; }
+        body { font-family: 'Pretendard', sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 20px; }
         .container { max-width: 500px; margin: 0 auto; }
-        .card { background: #fff; border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .card { background: var(--card-bg); border-radius: 20px; padding: 25px; border: 1px solid rgba(255,255,255,0.05); }
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        
         .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-weight: 600; margin-bottom: 8px; color: #555; }
-        input, select, textarea { 
-            width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 10px; 
-            box-sizing: border-box; font-size: 16px; font-family: inherit;
-        }
-        .row { display: flex; gap: 10px; }
-        .row > div { flex: 1; }
-        
-        .btn-submit { 
-            width: 100%; background: var(--primary); color: white; border: none; 
-            padding: 16px; border-radius: 12px; font-size: 18px; font-weight: 700; 
-            cursor: pointer; margin-top: 20px; transition: 0.3s;
-        }
-        .btn-submit:disabled { background: #ccc; }
-        .btn-back { background: #fff; border: 1px solid #ddd; padding: 8px 18px; border-radius: 10px; cursor: pointer; }
+        label { display: block; font-size: 0.9rem; color: var(--text-sub); margin-bottom: 8px; }
+        input, textarea, select { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #334155; background: #0f172a; color: white; font-size: 1rem; box-sizing: border-box; outline: none; }
+        .btn-submit { width: 100%; padding: 15px; border-radius: 12px; border: none; background: var(--primary); color: #000; font-weight: 700; cursor: pointer; margin-top: 10px; }
     </style>
 </head>
 <body>
     <div class="container">
-        <header>
-            <h2>신규 회원 등록</h2>
-            <button class="btn-back" onclick="location.href='index.html'">취소</button>
-        </header>
-
+        <header><h2>회원 등록</h2><a href="index.html" style="color:var(--text-sub); text-decoration:none;">닫기</a></header>
         <div class="card">
-            <form id="addForm">
-                <div class="form-group">
-                    <label>이름 *</label>
-                    <input type="text" id="name" required placeholder="홍길동">
-                </div>
-                <div class="form-group">
-                    <label>연락처 *</label>
-                    <input type="tel" id="phone" required placeholder="010-0000-0000">
-                </div>
-                <div class="form-group">
-                    <label>주소</label>
-                    <input type="text" id="address" placeholder="시/구/동 까지만 입력 가능">
-                </div>
-                <div class="row">
-                    <div class="form-group">
-                        <label>키 (cm)</label>
-                        <input type="number" id="height" step="0.1" placeholder="175.5">
-                    </div>
-                    <div class="form-group">
-                        <label>몸무게 (kg)</label>
-                        <input type="number" id="weight" step="0.1" placeholder="70.2">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>PT 등록 횟수 *</label>
-                    <input type="number" id="pt" value="30" required>
-                </div>
-                <div class="form-group">
-                    <label>운동 목적</label>
-                    <select id="goal">
-                        <option value="다이어트">다이어트</option>
-                        <option value="근력 증강">근력 증강</option>
-                        <option value="체형 교정">체형 교정</option>
-                        <option value="바디 프로필">바디 프로필</option>
-                        <option value="기타">기타</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>특이사항 (질환 등)</label>
-                    <textarea id="memo" rows="3" placeholder="허리 디스크 있음 등"></textarea>
-                </div>
-
-                <button type="submit" id="submitBtn" class="btn-submit">등록 완료</button>
-            </form>
+            <div class="form-group"><label>이름</label><input type="text" id="name"></div>
+            <div class="form-group"><label>담당 선생님</label><input type="text" id="teacher"></div>
+            <div class="form-group"><label>연락처</label><input type="tel" id="phone"></div>
+            <div class="form-group">
+                <label>운동 목적</label>
+                <select id="goal">
+                    <option value="다이어트">🔥 다이어트</option>
+                    <option value="근력 향상">💪 근력 향상</option>
+                    <option value="체형 교정">🧘 체형 교정</option>
+                    <option value="바디 프로필">📸 바디 프로필</option>
+                    <option value="기타">✏️ 기타 (메모 기입)</option>
+                </select>
+            </div>
+            <div class="form-group"><label>PT 횟수</label><input type="number" id="pt" value="10"></div>
+            <div class="form-group"><label>주소</label><input type="text" id="address"></div>
+            <div class="form-group"><label>메모</label><textarea id="memo" rows="3"></textarea></div>
+            <button class="btn-submit" id="submitBtn" onclick="submit()">등록 완료</button>
         </div>
     </div>
-
     <script>
-        const API = "https://script.google.com/macros/s/AKfycbyDxpufb43p7KP9LrrANZm4wFnyHFiMuKrJu9fjnsBA6kcbXu-QKvK3-VydebDBZXKK/exec";
-
-        document.getElementById('addForm').onsubmit = async (e) => {
-            e.preventDefault();
+        const API = "https://script.google.com/macros/s/AKfycbyPcCcsW8NY-I4zYqhBWVFg0jzfFzgr51meoE14J_ReVCqAIJMXSqMzrvAxRbZDuX7q/exec";
+        async function submit() {
             const btn = document.getElementById('submitBtn');
-            btn.disabled = true;
-            btn.innerText = "등록 중...";
-
+            btn.disabled = true; btn.innerText = "등록 중...";
             const payload = {
                 action: "addMember",
                 name: document.getElementById('name').value,
+                teacher: document.getElementById('teacher').value,
                 phone: document.getElementById('phone').value,
-                address: document.getElementById('address').value,
-                height: document.getElementById('height').value,
-                weight: document.getElementById('weight').value,
-                pt: document.getElementById('pt').value,
                 goal: document.getElementById('goal').value,
+                pt: document.getElementById('pt').value,
+                address: document.getElementById('address').value,
                 memo: document.getElementById('memo').value
             };
-
             try {
-                const res = await fetch(API, {
-                    method: 'POST',
-                    body: JSON.stringify(payload)
-                });
-                const result = await res.json();
-
-                if (result.result === "success") {
-                    alert("회원이 성공적으로 등록되었습니다.");
-                    location.href = "index.html";
-                } else {
-                    alert("오류: " + result.message);
-                    btn.disabled = false;
-                    btn.innerText = "등록 완료";
-                }
-            } catch (err) {
-                alert("서버 통신 오류");
-                btn.disabled = false;
-                btn.innerText = "등록 완료";
-            }
-        };
+                const res = await fetch(API, { method: 'POST', body: JSON.stringify(payload) });
+                if((await res.json()).result === "success") location.href = "index.html";
+            } catch(e) { alert("통신 오류"); btn.disabled = false; }
+        }
     </script>
 </body>
 </html>

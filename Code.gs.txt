@@ -1,5 +1,5 @@
 /************************
- * PT 회원관리 시스템 Backend
+ * PT 회원관리 시스템 Backend (최종본)
  ************************/
 
 const MEMBERS = "Members";
@@ -23,7 +23,7 @@ function doPost(e) {
   if (data.action === "addMember") return addMember(data);
   if (data.action === "checkin") return checkIn(data.memberId);
   
-  // 상세 정보 수정 (PT 횟수 D열 포함)
+  // 모든 상세 정보 수정 (전화번호, 주소, PT횟수, 신체정보, 메모)
   if (data.action === "updateDetails") return updateMemberDetails(data);
   
   // 회원 삭제
@@ -32,7 +32,7 @@ function doPost(e) {
   return output({ result: "error" });
 }
 
-/** 1. 회원 정보 수정 (D열 PT 횟수 반영) */
+/** 1. 회원 정보 수정 (C, D, F, G, H, J열 업데이트) */
 function updateMemberDetails(data) {
   const ss = SpreadsheetApp.getActive();
   const sheet = ss.getSheetByName(MEMBERS);
@@ -40,15 +40,19 @@ function updateMemberDetails(data) {
   
   for (let i = 1; i < rows.length; i++) {
     if (String(rows[i][0]) === String(data.memberId)) {
+      // 열 번호 주의: 1부터 시작 (A=1, B=2, C=3...)
+      sheet.getRange(i + 1, 3).setValue(data.phone);         // C열: 연락처
       sheet.getRange(i + 1, 4).setValue(Number(data.pt));    // D열: PT횟수
-      sheet.getRange(i + 1, 7).setValue(data.height);       // G열: 키
-      sheet.getRange(i + 1, 8).setValue(data.weight);       // H열: 몸무게
-      sheet.getRange(i + 1, 9).setValue(data.goal);         // I열: 목적
-      sheet.getRange(i + 1, 10).setValue(data.memo);        // J열: 메모
+      sheet.getRange(i + 1, 6).setValue(data.address);       // F열: 주소
+      sheet.getRange(i + 1, 7).setValue(data.height);        // G열: 키
+      sheet.getRange(i + 1, 8).setValue(data.weight);        // H열: 몸무게
+      // 필요 시 목적(I열) 추가: sheet.getRange(i + 1, 9).setValue(data.goal);
+      sheet.getRange(i + 1, 10).setValue(data.memo);         // J열: 메모
+      
       return output({ result: "success" });
     }
   }
-  return output({ result: "fail" });
+  return output({ result: "fail", message: "회원을 찾을 수 없습니다." });
 }
 
 /** 2. 회원 삭제 기능 */
@@ -90,7 +94,7 @@ function getMembers() {
   const rows = sheet.getDataRange().getValues();
   rows.shift();
   const members = rows.map(r => ({
-    id: r[0], name: r[1], phone: r[2], pt: r[3], address: r[5], height: r[6], weight: r[7], goal: r[8], memo: r[9]
+    id: r[0], name: r[1], phone: r[2], pt: r[3], status: r[4], address: r[5], height: r[6], weight: r[7], goal: r[8], memo: r[9]
   }));
   return output({ result: "success", data: members });
 }
@@ -120,7 +124,8 @@ function loginCheck(id, pw) {
 function addMember(data) {
   const ss = SpreadsheetApp.getActive();
   const sheet = ss.getSheetByName(MEMBERS);
-  const id = new Date().getTime();
+  const id = new Date().getTime(); // 고유 ID 생성
+  // 시트 순서: ID, 이름, 전화번호, PT횟수, 상태, 주소, 키, 몸무게, 목적, 메모
   sheet.appendRow([id, data.name, data.phone, data.pt, "active", data.address, data.height, data.weight, data.goal, data.memo]);
   return output({ result: "success" });
 }

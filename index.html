@@ -9,145 +9,191 @@
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #0f172a;
-            --card-bg: #1e293b;
-            --primary: #22c55e;
-            --danger: #ef4444;
-            --text-main: #f8fafc;
-            --text-sub: #94a3b8;
+        :root { 
+            --bg: #0f172a; --card-bg: #1e293b; --primary: #22c55e; --danger: #ef4444; 
+            --text-main: #f8fafc; --text-sub: #94a3b8; --star-on: #fbbf24; --star-off: #475569; 
         }
         body { font-family: 'Pretendard', sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 20px; }
         .container { max-width: 500px; margin: 0 auto; }
+        #mainLoaderContainer { position: fixed; top: 0; left: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.05); z-index: 1000; }
+        #mainProgressBar { width: 0%; height: 100%; background: var(--primary); transition: width 0.3s ease; }
         
-        /* 메인 로딩 프로그레스 바 */
-        #mainLoaderContainer {
-            position: fixed; top: 0; left: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.05); z-index: 1000;
-        }
-        #mainProgressBar {
-            width: 0%; height: 100%; background: linear-gradient(90deg, #4ade80, #22c55e); transition: width 0.3s ease; box-shadow: 0 0 10px var(--primary);
-        }
-
         header { margin-bottom: 25px; }
-        h2 { font-size: 1.5rem; font-weight: 700; background: linear-gradient(to right, #4ade80, #22c55e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 20px; }
-        
         .nav-buttons { display: flex; gap: 10px; margin-bottom: 20px; }
-        .nav-btn { flex: 1; padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: var(--card-bg); color: var(--text-main); font-weight: 600; cursor: pointer; transition: 0.2s; }
+        .nav-btn { flex: 1; padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: var(--card-bg); color: var(--text-main); font-weight: 600; cursor: pointer; text-decoration: none; text-align: center; }
+        
+        .filter-group { display: flex; gap: 10px; margin-bottom: 20px; }
+        .search-box { flex: 1.5; padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: var(--card-bg); color: white; outline: none; }
+        .filter-select { flex: 1; padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: var(--card-bg); color: white; outline: none; }
 
-        .search-box { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: var(--card-bg); color: white; box-sizing: border-box; margin-bottom: 20px; outline: none; }
-
-        /* 회원 카드 디자인 */
-        .member-card { background: var(--card-bg); border-radius: 20px; padding: 18px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05); animation: fadeIn 0.5s ease forwards; opacity: 0; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
+        .member-card { background: var(--card-bg); border-radius: 20px; padding: 18px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.05); }
         .card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .name-area { display: flex; align-items: center; gap: 10px; }
+        .star-btn { background: none; border: none; cursor: pointer; font-size: 1.3rem; color: var(--star-off); padding: 0; line-height: 1; }
+        .star-btn.on { color: var(--star-on); }
         .name { font-size: 1.1rem; font-weight: 700; }
         .pt-count { font-size: 0.85rem; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
         .pt-normal { background: rgba(34, 197, 94, 0.1); color: #4ade80; }
         .pt-low { background: rgba(239, 68, 68, 0.1); color: #f87171; }
-
+        
         .list-prog-container { width: 100%; height: 6px; background: rgba(255,255,255,0.05); border-radius: 10px; overflow: hidden; margin-bottom: 15px; }
-        .list-prog-bar { height: 100%; background: linear-gradient(90deg, #4ade80, #22c55e); transition: width 1s cubic-bezier(0.34, 1.56, 0.64, 1); }
-
+        .list-prog-bar { height: 100%; background: var(--primary); transition: width 0.5s ease; }
+        
         .actions { display: flex; gap: 8px; }
         .btn-check { flex: 2; background: var(--primary); color: #000; border: none; padding: 10px; border-radius: 10px; font-weight: 700; cursor: pointer; }
-        .btn-detail { flex: 1; background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 10px; cursor: pointer; }
+        .btn-detail { flex: 1; background: rgba(255,255,255,0.05); color: var(--text-main); border: 1px solid rgba(255,255,255,0.1); padding: 10px; border-radius: 10px; cursor: pointer; text-align: center; text-decoration: none; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; }
     </style>
 </head>
 <body>
     <div id="mainLoaderContainer"><div id="mainProgressBar"></div></div>
-
     <div class="container">
         <header>
-            <h2>PT Members</h2>
+            <h2 style="margin: 0 0 20px 0; color: var(--primary);">PT Members</h2>
             <div class="nav-buttons">
-                <button class="nav-btn" onclick="location.href='add.html'">회원 등록</button>
-                <button class="nav-btn" onclick="location.href='status.html'">잔여 리포트</button>
+                <a href="add.html" class="nav-btn">회원 등록</a>
+                <a href="status.html" class="nav-btn">잔여 리포트</a>
             </div>
         </header>
+        
+        <div class="filter-group">
+            <input type="text" id="searchInput" class="search-box" placeholder="이름 검색..." onkeyup="applyFilters()">
+            <select id="teacherFilter" class="filter-select" onchange="applyFilters()">
+                <option value="all">전체 담당</option>
+            </select>
+        </div>
 
-        <input type="text" id="searchInput" class="search-box" placeholder="이름 또는 전화번호 검색..." onkeyup="filter()">
         <div id="memberList"></div>
     </div>
 
     <script>
-        const API = "https://script.google.com/macros/s/AKfycbyDxpufb43p7KP9LrrANZm4wFnyHFiMuKrJu9fjnsBA6kcbXu-QKvK3-VydebDBZXKK/exec";
+        // Apps Script 웹 앱 URL을 본인의 것으로 유지하세요.
+        const API = "https://script.google.com/macros/s/AKfycbyPcCcsW8NY-I4zYqhBWVFg0jzfFzgr51meoE14J_ReVCqAIJMXSqMzrvAxRbZDuX7q/exec";
         let allData = [];
+
+        function getFavs() { return JSON.parse(localStorage.getItem('fav_members') || '[]'); }
+        function saveFavs(favs) { localStorage.setItem('fav_members', JSON.stringify(favs)); }
 
         async function load() {
             const bar = document.getElementById('mainProgressBar');
+            bar.style.width = "30%";
             try {
-                // 로딩 시작
-                bar.style.width = "30%";
-                
                 const res = await fetch(`${API}?action=members`);
-                bar.style.width = "70%";
-                
                 const json = await res.json();
-                allData = json.data;
                 
-                // 데이터 로드 완료
+                // 데이터 유효성 검사 및 정규화
+                allData = (json.data || []).filter(m => m && (m.name || m.id));
+                
+                // 선생님 목록 업데이트
+                const select = document.getElementById('teacherFilter');
+                const teachers = [...new Set(allData.map(m => String(m.teacher || '')).filter(t => t.trim() !== ''))];
+                select.innerHTML = '<option value="all">전체 담당</option>';
+                teachers.forEach(t => {
+                    const opt = document.createElement('option');
+                    opt.value = t; opt.innerText = t;
+                    select.appendChild(opt);
+                });
+                
                 bar.style.width = "100%";
-                render(allData);
-                
-                // 완료 후 바 숨기기
-                setTimeout(() => { bar.style.width = "0%"; }, 500);
-            } catch (e) {
-                alert("데이터 로드 실패");
-                bar.style.backgroundColor = "var(--danger)";
+                applyFilters(); 
+                setTimeout(() => bar.style.width = "0", 500);
+            } catch(e) { 
+                console.error("Load Error:", e);
+                alert("데이터 로드 중 오류가 발생했습니다."); 
             }
+        }
+
+        function applyFilters() {
+            const searchTxt = document.getElementById("searchInput").value.toLowerCase();
+            const teacherTxt = document.getElementById("teacherFilter").value;
+            const favs = getFavs();
+            
+            // 필터링 (이름 오류 방지 처리 추가)
+            let filtered = allData.filter(m => {
+                const memberName = String(m.name || "").toLowerCase(); // 문자열 변환 및 오류 방지
+                const matchName = memberName.includes(searchTxt);
+                const matchTeacher = (teacherTxt === "all") || (String(m.teacher || "") === teacherTxt);
+                return matchName && matchTeacher;
+            });
+
+            // 즐겨찾기 순 정렬
+            filtered.sort((a, b) => {
+                const aFav = favs.includes(String(a.id)) ? 1 : 0;
+                const bFav = favs.includes(String(b.id)) ? 1 : 0;
+                return bFav - aFav; 
+            });
+            
+            render(filtered);
         }
 
         function render(data) {
             const list = document.getElementById("memberList");
+            const favs = getFavs();
             list.innerHTML = "";
-            data.forEach((m, index) => {
+
+            if (data.length === 0) {
+                list.innerHTML = '<div style="text-align:center; padding:50px; color:var(--text-sub);">일치하는 회원이 없습니다.</div>';
+                return;
+            }
+
+            data.forEach((m) => {
                 const pt = Number(m.pt || 0);
-                const per = Math.min((pt / 30) * 100, 100);
-                const isLow = pt <= 3;
+                const isFav = favs.includes(String(m.id));
+                const teacherName = m.teacher || '미지정';
+                
                 const div = document.createElement("div");
                 div.className = "member-card";
-                div.style.animationDelay = (index * 0.05) + "s"; // 순차적 등장 효과
+                div.id = `card-${m.id}`;
                 div.innerHTML = `
                     <div class="card-top">
-                        <span class="name">${m.name}</span>
-                        <span class="pt-count ${isLow ? 'pt-low' : 'pt-normal'}">잔여 ${pt}회</span>
+                        <div class="name-area">
+                            <button class="star-btn ${isFav ? 'on' : ''}" onclick="toggleFav('${m.id}')">
+                                ${isFav ? '★' : '☆'}
+                            </button>
+                            <span class="name">${m.name || '이름없음'}</span>
+                        </div>
+                        <span class="pt-count ${pt <= 3 ? 'pt-low' : 'pt-normal'}">${teacherName}T | 잔여 ${pt}회</span>
                     </div>
                     <div class="list-prog-container">
-                        <div class="list-prog-bar" style="width:0%; ${isLow ? 'background:#ef4444' : ''}"></div>
+                        <div class="list-prog-bar" style="width:${Math.min((pt / 30) * 100, 100)}%; ${pt <= 3 ? 'background:#ef4444' : ''}"></div>
                     </div>
                     <div class="actions">
                         <button class="btn-check" onclick="checkIn('${m.id}', '${m.name}')">출석 체크</button>
-                        <button class="btn-detail" onclick="location.href='member.html?id=${m.id}'">상세</button>
+                        <a href="member.html?id=${m.id}" class="btn-detail">상세</a>
                     </div>
                 `;
                 list.appendChild(div);
-
-                // 개별 카드 프로그레스 바 애니메이션
-                setTimeout(() => {
-                    div.querySelector('.list-prog-bar').style.width = per + "%";
-                }, 100);
             });
         }
 
-        function filter() {
-            const txt = document.getElementById("searchInput").value.toLowerCase();
-            const filtered = allData.filter(m => m.name.toLowerCase().includes(txt) || m.phone.includes(txt));
-            render(filtered);
+        function toggleFav(id) {
+            id = String(id);
+            let favs = getFavs();
+            if (favs.includes(id)) {
+                favs = favs.filter(f => f !== id);
+            } else {
+                favs.push(id);
+            }
+            saveFavs(favs);
+            applyFilters(); 
         }
 
         async function checkIn(id, name) {
             if(!confirm(`${name}님 출석하시겠습니까?`)) return;
             const bar = document.getElementById('mainProgressBar');
             bar.style.width = "50%";
-            const res = await fetch(`${API}?action=checkin&memberId=${id}`);
-            const result = await res.json();
-            bar.style.width = "100%";
-            if(result.result === "success") { 
-                alert("출석 완료!"); 
-                location.reload(); 
-            }
+            try {
+                const res = await fetch(`${API}?action=checkin&memberId=${id}`);
+                const result = await res.json();
+                if(result.result === "success") {
+                    bar.style.width = "100%";
+                    const member = allData.find(m => String(m.id) === String(id));
+                    if(member) member.pt = Number(member.pt) - 1;
+                    applyFilters(); 
+                    setTimeout(() => bar.style.width = "0", 500);
+                }
+            } catch(e) { alert("통신 오류"); bar.style.width = "0"; }
         }
+
         load();
     </script>
 </body>

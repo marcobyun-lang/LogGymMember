@@ -4,121 +4,183 @@
     <meta charset="UTF-8">
     <title>회원 상세 정보</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script>
-        if (sessionStorage.getItem("admin") !== "1") location.href = "admin.html";
-    </script>
+    <script>if (sessionStorage.getItem("admin") !== "1") location.href = "admin.html";</script>
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --bg: #0f172a;
-            --card-bg: #1e293b;
-            --primary: #22c55e;
-            --danger: #ef4444;
-            --text-main: #f8fafc;
-            --text-sub: #94a3b8;
-        }
+        :root { --bg: #0f172a; --card-bg: #1e293b; --primary: #22c55e; --danger: #ef4444; --text-main: #f8fafc; --text-sub: #94a3b8; }
         body { font-family: 'Pretendard', sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 20px; }
         .container { max-width: 500px; margin: 0 auto; }
-        
-        /* 상단 로딩 프로그레스 바 */
-        #mainLoaderContainer { position: fixed; top: 0; left: 0; width: 100%; height: 4px; background: rgba(255,255,255,0.05); z-index: 1000; }
-        #mainProgressBar { width: 0%; height: 100%; background: linear-gradient(90deg, #4ade80, #22c55e); transition: width 0.3s ease; box-shadow: 0 0 10px var(--primary); }
-
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        h2 { font-size: 1.3rem; margin: 0; font-weight: 700; color: var(--primary); }
-        .btn-back { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; padding: 8px 16px; border-radius: 12px; cursor: pointer; }
-
-        .card { background: var(--card-bg); border-radius: 24px; padding: 24px; border: 1px solid rgba(255,255,255,0.05); margin-bottom: 20px; animation: fadeIn 0.5s ease forwards; opacity: 0; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-        h3 { font-size: 1rem; margin: 0 0 20px 0; color: var(--text-sub); display: flex; align-items: center; gap: 8px; }
-        h3::before { content: ''; width: 4px; height: 16px; background: var(--primary); border-radius: 10px; }
-
-        .info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .info-row.column { flex-direction: column; gap: 8px; } /* 주소처럼 긴 항목용 */
-        .label { color: var(--text-sub); font-size: 0.9rem; }
-        .value { font-weight: 600; }
-
-        .btn-delete { width: 100%; background: none; color: var(--danger); border: 1px solid var(--danger); padding: 12px; border-radius: 15px; font-weight: 600; cursor: pointer; margin-top: 20px; opacity: 0.7; }
+        #mainProgressBar { position: fixed; top: 0; left: 0; width: 0%; height: 4px; background: var(--primary); transition: width 0.3s; }
+        .info-card { background: var(--card-bg); border-radius: 20px; padding: 25px; border: 1px solid rgba(255,255,255,0.05); }
+        .info-row { margin-bottom: 20px; }
+        .label { font-size: 0.85rem; color: var(--text-sub); display: block; margin-bottom: 5px; }
+        .value { font-size: 1.1rem; font-weight: 600; }
+        .edit-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: white; display: none; margin-top: 5px; box-sizing: border-box; }
+        .btn-group { display: flex; gap: 10px; margin-top: 30px; }
+        .btn { flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; }
+        .btn-edit { background: var(--primary); color: #000; }
+        .btn-save { background: #3b82f6; color: #fff; display: none; }
+        .btn-del { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); }
+        #view_phone_link { border-bottom: 1px dashed var(--text-sub); padding-bottom: 2px; }
     </style>
 </head>
 <body>
-    <div id="mainLoaderContainer"><div id="mainProgressBar"></div></div>
-
+    <div id="mainProgressBar"></div>
     <div class="container">
-        <header>
-            <h2>회원 상세 프로필</h2>
-            <button class="btn-back" onclick="location.href='index.html'">← 목록</button>
+        <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+            <h2 id="headerName" style="margin:0;">회원 상세</h2>
+            <a href="index.html" style="color:var(--text-sub); text-decoration:none;">목록으로</a>
         </header>
 
-        <div class="card" style="animation-delay: 0.1s;">
-            <h3>기본 정보</h3>
-            <div class="info-row"><span class="label">이름</span><span class="value" id="name">-</span></div>
-            <div class="info-row"><span class="label">연락처</span><span class="value" id="phone">-</span></div>
-            <div class="info-row column">
-                <span class="label">주소</span>
-                <span class="value" id="address" style="font-weight: 400; color: #cbd5e1;">-</span>
-            </div>
+        <div class="info-card">
             <div class="info-row">
-                <span class="label">잔여 수업</span>
-                <span id="ptView" class="value" style="color:var(--primary); font-size: 1.1rem;">-</span>
+                <span class="label">이름</span>
+                <div class="value" id="view_name">-</div>
+                <input type="text" id="edit_name" class="edit-input">
+            </div>
+
+            <div class="info-row">
+                <span class="label">담당 선생님</span>
+                <div class="value" id="view_teacher">-</div>
+                <input type="text" id="edit_teacher" class="edit-input">
+            </div>
+            
+            <div class="info-row">
+                <span class="label">연락처 (터치 시 통화)</span>
+                <div class="value">
+                    <a id="view_phone_link" href="#" style="color:inherit; text-decoration:none;">-</a>
+                </div>
+                <input type="tel" id="edit_phone" class="edit-input">
+            </div>
+
+            <div class="info-row">
+                <span class="label">운동 목적</span>
+                <div class="value" id="view_goal">-</div>
+                <select id="edit_goal" class="edit-input">
+                    <option value="다이어트">🔥 다이어트</option>
+                    <option value="근력 향상">💪 근력 향상</option>
+                    <option value="체형 교정">🧘 체형 교정</option>
+                    <option value="바디 프로필">📸 바디 프로필</option>
+                    <option value="재활 및 통증 완화">🏥 재활 및 통증 완화</option>
+                    <option value="기타">✏️ 기타</option>
+                </select>
+            </div>
+            <div class="info-row"><span class="label">잔여 PT</span><div class="value" id="view_pt">-</div><input type="number" id="edit_pt" class="edit-input"></div>
+            
+            <div class="info-row">
+                <span class="label">신체 정보 (cm/kg)</span>
+                <div class="value" id="view_body">-</div>
+                <div style="display:flex; gap:5px;">
+                    <input type="number" id="edit_height" class="edit-input" placeholder="키" style="flex:1;">
+                    <input type="number" id="edit_weight" class="edit-input" placeholder="몸무게" style="flex:1;">
+                </div>
+            </div>
+            <div class="info-row"><span class="label">주소</span><div class="value" id="view_address">-</div><input type="text" id="edit_address" class="edit-input"></div>
+            <div class="info-row"><span class="label">메모</span><div class="value" id="view_memo" style="white-space:pre-wrap;">-</div><textarea id="edit_memo" class="edit-input" rows="4"></textarea></div>
+
+            <div class="btn-group">
+                <button class="btn btn-edit" id="btnEdit" onclick="toggleEdit()">수정하기</button>
+                <button class="btn btn-save" id="btnSave" onclick="save()">저장하기</button>
+                <button class="btn btn-del" id="btnDelete" onclick="askDelete()">회원 삭제</button>
             </div>
         </div>
-
-        <div class="card" style="animation-delay: 0.2s;">
-            <h3>PT 상세 및 메모</h3>
-            <div class="info-row">
-                <span class="label">신체 정보</span>
-                <span id="bodyView" class="value">-</span>
-            </div>
-            <div style="margin-top:20px;">
-                <div class="label" style="margin-bottom:10px;">관리 메모</div>
-                <div id="memoView" style="background: rgba(0,0,0,0.2); padding: 15px; border-radius: 15px; font-size: 0.95rem; color: #cbd5e1; border: 1px solid rgba(255,255,255,0.05); min-height: 80px; white-space: pre-wrap;">-</div>
-            </div>
-        </div>
-
-        <button class="btn-delete" onclick="askDelete()">회원 정보 삭제</button>
     </div>
 
     <script>
-        const API = "https://script.google.com/macros/s/AKfycbyDxpufb43p7KP9LrrANZm4wFnyHFiMuKrJu9fjnsBA6kcbXu-QKvK3-VydebDBZXKK/exec"; 
-        const memberId = new URLSearchParams(window.location.search).get('id');
+        const API = "https://script.google.com/macros/s/AKfycbyPcCcsW8NY-I4zYqhBWVFg0jzfFzgr51meoE14J_ReVCqAIJMXSqMzrvAxRbZDuX7q/exec";
+        const urlParams = new URLSearchParams(window.location.search);
+        const memberId = urlParams.get('id');
 
         async function load() {
             const bar = document.getElementById('mainProgressBar');
+            bar.style.width = "40%";
             try {
-                bar.style.width = "40%";
                 const res = await fetch(`${API}?action=members`);
                 const json = await res.json();
-                bar.style.width = "80%";
-                
                 const m = json.data.find(i => String(i.id) === String(memberId));
-                
                 if (m) {
-                    document.getElementById('name').innerText = m.name;
-                    document.getElementById('phone').innerText = m.phone;
-                    // 주소 데이터 연결 (m.address)
-                    document.getElementById('address').innerText = m.address || "등록된 주소 없음";
-                    document.getElementById('ptView').innerText = m.pt + "회 남음";
-                    document.getElementById('bodyView').innerText = `${m.height || 0}cm / ${m.weight || 0}kg`;
-                    document.getElementById('memoView').innerText = m.memo || "내용 없음";
+                    document.getElementById('headerName').innerText = `${m.name} 회원님`;
+                    document.getElementById('view_name').innerText = m.name;
+                    document.getElementById('edit_name').value = m.name; // 로드시 입력창에도 값 넣기
+
+                    document.getElementById('view_teacher').innerText = m.teacher || "미지정";
+                    document.getElementById('edit_teacher').value = m.teacher || "";
+                    
+                    const phoneLink = document.getElementById('view_phone_link');
+                    phoneLink.innerText = m.phone;
+                    phoneLink.href = `tel:${m.phone}`;
+                    document.getElementById('edit_phone').value = m.phone;
+
+                    document.getElementById('view_goal').innerText = m.goal || "미설정";
+                    document.getElementById('edit_goal').value = m.goal || "다이어트";
+
+                    document.getElementById('view_pt').innerText = `${m.pt}회`;
+                    document.getElementById('edit_pt').value = m.pt;
+
+                    document.getElementById('view_body').innerText = `${m.height || 0}cm / ${m.weight || 0}kg`;
+                    document.getElementById('edit_height').value = m.height || "";
+                    document.getElementById('edit_weight').value = m.weight || "";
+
+                    document.getElementById('view_address').innerText = m.address || "-";
+                    document.getElementById('edit_address').value = m.address || "";
+
+                    document.getElementById('view_memo').innerText = m.memo || "내용 없음";
+                    document.getElementById('edit_memo').value = m.memo || "";
                 }
-                
                 bar.style.width = "100%";
-                setTimeout(() => { bar.style.width = "0%"; }, 500);
-            } catch (e) {
-                alert("정보를 불러오는데 실패했습니다.");
-            }
+                setTimeout(() => bar.style.width = "0", 500);
+            } catch (e) { alert("정보 로드 실패"); }
+        }
+
+        function toggleEdit() {
+            const isEditing = document.getElementById('btnSave').style.display === 'block';
+            document.querySelectorAll('.value').forEach(v => v.style.display = isEditing ? 'block' : 'none');
+            document.querySelectorAll('.edit-input').forEach(e => e.style.display = isEditing ? 'none' : 'block');
+            document.getElementById('btnEdit').style.display = isEditing ? 'block' : 'none';
+            document.getElementById('btnSave').style.display = isEditing ? 'none' : 'block';
+            document.getElementById('btnDelete').style.display = isEditing ? 'block' : 'none';
+        }
+
+        async function save() {
+            const btn = document.getElementById('btnSave');
+            btn.disabled = true;
+            btn.innerText = "저장 중...";
+            const payload = {
+                action: "updateDetails",
+                memberId: memberId,
+                name: document.getElementById('edit_name').value, // 이름 데이터 추가
+                teacher: document.getElementById('edit_teacher').value,
+                phone: document.getElementById('edit_phone').value,
+                goal: document.getElementById('edit_goal').value,
+                pt: document.getElementById('edit_pt').value,
+                height: document.getElementById('edit_height').value,
+                weight: document.getElementById('edit_weight').value,
+                address: document.getElementById('edit_address').value,
+                memo: document.getElementById('edit_memo').value
+            };
+            try {
+                const res = await fetch(API, { method: 'POST', body: JSON.stringify(payload) });
+                const result = await res.json();
+                if(result.result === "success") {
+                    alert("성공적으로 수정되었습니다.");
+                    location.reload();
+                } else {
+                    alert("저장 실패: " + result.message);
+                    btn.disabled = false;
+                    btn.innerText = "저장하기";
+                }
+            } catch (e) { alert("서버 통신 오류"); btn.disabled = false; btn.innerText = "저장하기"; }
         }
 
         async function askDelete() {
-            if(confirm("정말 삭제하시겠습니까?")) {
+            if(confirm("정말 이 회원을 삭제하시겠습니까?")) {
                 const res = await fetch(API, { method: 'POST', body: JSON.stringify({ action: "deleteMember", memberId }) });
-                const result = await res.json();
-                if(result.result === "success") { alert("삭제되었습니다."); location.href="index.html"; }
+                if((await res.json()).result === "success") {
+                    alert("삭제되었습니다.");
+                    location.href = "index.html";
+                }
             }
         }
-
         if (memberId) load();
     </script>
 </body>
