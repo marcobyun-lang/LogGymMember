@@ -23,7 +23,6 @@
             background: var(--bg); 
             color: var(--text-main); 
             margin: 0; padding: 20px;
-            /* 에너지가 느껴지는 방사형 그라데이션 */
             background-image: 
                 radial-gradient(circle at 100% 0%, rgba(16, 185, 129, 0.08) 0%, transparent 40%),
                 radial-gradient(circle at 0% 100%, rgba(16, 185, 129, 0.05) 0%, transparent 40%),
@@ -35,7 +34,6 @@
             overscroll-behavior-y: contain;
         }
 
-        /* 역동적인 사선 + 격자 패턴 */
         body::before {
             content: "";
             position: fixed;
@@ -53,12 +51,36 @@
 
         .container { width: 100%; max-width: 500px; margin: 0 auto; position: relative; z-index: 1; }
         
-        header { margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; }
+        header { margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
         header h2 { 
             font-size: 1.6rem; font-weight: 900; margin: 0; letter-spacing: -1px;
             background: linear-gradient(to bottom right, #fff 30%, var(--primary)); 
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             text-transform: uppercase;
+        }
+
+        /* 필터 버튼 스타일 추가 */
+        .filter-bar {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 25px;
+        }
+        .filter-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 12px;
+            border: 1px solid var(--glass-border);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-sub);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .filter-btn.active {
+            background: var(--primary);
+            color: #05080f;
+            border-color: var(--primary);
         }
 
         .back-link { 
@@ -140,15 +162,33 @@
             <h2>잔여 PT 리포트</h2>
             <a href="index.html" class="back-link">닫기</a>
         </header>
+
+        <div class="filter-bar">
+            <button id="sortAsc" class="filter-btn active" onclick="setSort('asc')">낮은 순 ↑</button>
+            <button id="sortDesc" class="filter-btn" onclick="setSort('desc')">높은 순 ↓</button>
+        </div>
+
         <div id="reportGrid" class="grid-container"></div>
     </div>
 
     <script>
         const API = "https://script.google.com/macros/s/AKfycby80GPaE8yuwvk8CE6Jq935bZL3PVwvg7a_gChDwW9JYC1YAEPsqiTf4yRxBlsIbKe8/exec";
         const ORDER_KEY = 'member_display_order';
+        let currentData = [];
+        let currentSort = 'asc'; // 기본값: 오름차순
 
         function getSavedOrder() { return JSON.parse(localStorage.getItem(ORDER_KEY) || '[]'); }
         function saveOrder(order) { localStorage.setItem(ORDER_KEY, JSON.stringify(order)); }
+
+        // 정렬 변경 함수
+        function setSort(type) {
+            currentSort = type;
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            if(type === 'asc') document.getElementById('sortAsc').classList.add('active');
+            else document.getElementById('sortDesc').classList.add('active');
+            
+            renderData();
+        }
 
         async function loadReport() {
             const bar = document.getElementById('mainProgressBar');
@@ -156,65 +196,58 @@
             try {
                 const res = await fetch(`${API}?action=members`);
                 const json = await res.json();
-                let members = json.data.filter(m => m && m.name);
+                currentData = json.data.filter(m => m && m.name);
                 
-                const savedOrder = getSavedOrder();
-                if(savedOrder.length > 0) {
-                    members.sort((a, b) => {
-                        let idxA = savedOrder.indexOf(String(a.id));
-                        let idxB = savedOrder.indexOf(String(b.id));
-                        return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
-                    });
-                }
-
-                const grid = document.getElementById('reportGrid');
-                grid.innerHTML = "";
                 bar.style.width = "70%";
-
-                members.forEach((m) => {
-                    const pt = Number(m.pt || 0);
-                    const isLow = pt <= 3;
-                    const card = document.createElement('div');
-                    card.className = 'member-card';
-                    card.id = String(m.id);
-                    card.draggable = true;
-                    card.innerHTML = `
-                        <div>
-                            <div class="card-header">
-                                <span class="name">${isLow ? '<span class="alert-dot"></span>' : ''}${m.name} 회원님</span>
-                                <span class="teacher-info">${m.teacher || '미지정'} 트레이너 💪</span>
-                            </div>
-                            <div class="count-area">
-                                <span class="count ${isLow ? 'low-text' : ''}">${pt}</span>
-                                <span class="unit">회 남음</span>
-                            </div>
-                        </div>
-                        <div class="prog-track"><div class="prog-fill ${isLow ? 'low-fill' : ''}" style="width: ${Math.min((pt/20)*100, 100)}%"></div></div>
-                    `;
-
-                    card.addEventListener('dragstart', () => setTimeout(() => card.classList.add('dragging'), 0));
-                    card.addEventListener('dragend', () => {
-                        card.classList.remove('dragging');
-                        saveOrder([...document.querySelectorAll('.member-card')].map(c => c.id));
-                    });
-                    grid.appendChild(card);
-                });
-
-                grid.addEventListener('dragover', e => {
-                    e.preventDefault();
-                    const dragging = document.querySelector('.dragging');
-                    if (!dragging) return;
-                    const target = e.target.closest('.member-card');
-                    if (!target || target === dragging) return;
-                    const rect = target.getBoundingClientRect();
-                    const next = (e.clientY - rect.top) / (rect.bottom - rect.top) > 0.5 || (e.clientX - rect.left) / (rect.right - rect.left) > 0.5;
-                    window.requestAnimationFrame(() => grid.insertBefore(dragging, next ? target.nextSibling : target));
-                });
+                renderData();
 
                 bar.style.width = "100%";
                 setTimeout(() => { bar.style.width = "0"; }, 500);
             } catch (e) { console.error(e); }
         }
+
+        function renderData() {
+            const grid = document.getElementById('reportGrid');
+            grid.innerHTML = "";
+
+            // 데이터 정렬 로직
+            let sortedMembers = [...currentData];
+            if(currentSort === 'asc') {
+                sortedMembers.sort((a, b) => Number(a.pt || 0) - Number(b.pt || 0));
+            } else {
+                sortedMembers.sort((a, b) => Number(b.pt || 0) - Number(a.pt || 0));
+            }
+
+            sortedMembers.forEach((m) => {
+                const pt = Number(m.pt || 0);
+                const isLow = pt <= 3;
+                const card = document.createElement('div');
+                card.className = 'member-card';
+                card.id = String(m.id);
+                card.draggable = true;
+                card.innerHTML = `
+                    <div>
+                        <div class="card-header">
+                            <span class="name">${isLow ? '<span class="alert-dot"></span>' : ''}${m.name} 회원님</span>
+                            <span class="teacher-info">${m.teacher || '미지정'} 트레이너 💪</span>
+                        </div>
+                        <div class="count-area">
+                            <span class="count ${isLow ? 'low-text' : ''}">${pt}</span>
+                            <span class="unit">회 남음</span>
+                        </div>
+                    </div>
+                    <div class="prog-track"><div class="prog-fill ${isLow ? 'low-fill' : ''}" style="width: ${Math.min((pt/20)*100, 100)}%"></div></div>
+                `;
+
+                card.addEventListener('dragstart', () => setTimeout(() => card.classList.add('dragging'), 0));
+                card.addEventListener('dragend', () => {
+                    card.classList.remove('dragging');
+                    saveOrder([...document.querySelectorAll('.member-card')].map(c => c.id));
+                });
+                grid.appendChild(card);
+            });
+        }
+
         loadReport();
     </script>
 </body>
