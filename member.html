@@ -5,31 +5,130 @@
     <title>회원 상세 정보</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script>if (sessionStorage.getItem("admin") !== "1") location.href = "admin.html";</script>
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #0f172a; --card-bg: #1e293b; --primary: #22c55e; --danger: #ef4444; --text-main: #f8fafc; --text-sub: #94a3b8; }
-        body { font-family: 'Pretendard', sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 20px; }
+        :root { 
+            --bg: #0b0f1a; 
+            --card-bg: #161e2d; 
+            --primary: #10b981; 
+            --danger: #f43f5e; 
+            --text-main: #f1f5f9; 
+            --text-sub: #94a3b8; 
+            --glass-border: rgba(255, 255, 255, 0.08);
+        }
+
+        body { 
+            font-family: 'Pretendard', sans-serif; 
+            background: var(--bg); 
+            color: var(--text-main); 
+            margin: 0; 
+            padding: 20px;
+            background-image: radial-gradient(circle at 50% -20%, #1e293b 0%, var(--bg) 80%);
+        }
+
         .container { max-width: 500px; margin: 0 auto; }
-        #mainProgressBar { position: fixed; top: 0; left: 0; width: 0%; height: 4px; background: var(--primary); transition: width 0.3s; }
-        .info-card { background: var(--card-bg); border-radius: 20px; padding: 25px; border: 1px solid rgba(255,255,255,0.05); }
+        #mainProgressBar { position: fixed; top: 0; left: 0; width: 0%; height: 4px; background: var(--primary); transition: width 0.3s; z-index: 1000; }
+
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        header h2 { margin: 0; font-size: 1.4rem; font-weight: 800; }
+        
+        /* 목록으로 버튼 효과 */
+        .back-link { 
+            color: var(--text-sub); 
+            text-decoration: none; 
+            font-size: 0.85rem; 
+            padding: 8px 16px; 
+            border-radius: 12px; 
+            border: 1px solid var(--glass-border); 
+            background: rgba(255,255,255,0.03); 
+            transition: all 0.3s ease; 
+        }
+        .back-link:hover {
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            transform: translateY(-2px);
+            border-color: var(--text-sub);
+        }
+
+        .info-card { 
+            background: var(--card-bg); 
+            border-radius: 24px; 
+            padding: 25px; 
+            border: 1px solid var(--glass-border); 
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+        }
+
         .info-row { margin-bottom: 20px; }
-        .label { font-size: 0.85rem; color: var(--text-sub); display: block; margin-bottom: 5px; }
-        .value { font-size: 1.1rem; font-weight: 600; }
-        .edit-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: white; display: none; margin-top: 5px; box-sizing: border-box; }
+        .label { font-size: 0.85rem; color: var(--text-sub); display: block; margin-bottom: 8px; font-weight: 500; }
+        .value { font-size: 1.1rem; font-weight: 600; color: var(--text-main); }
+        
+        .edit-input { 
+            width: 100%; padding: 12px; border-radius: 12px; 
+            border: 1px solid var(--glass-border); background: #0b0f1a; 
+            color: white; display: none; margin-top: 5px; box-sizing: border-box; 
+            font-family: inherit; font-size: 1rem; outline: none;
+        }
+        .edit-input:focus { border-color: var(--primary); }
+
         .btn-group { display: flex; gap: 10px; margin-top: 30px; }
-        .btn { flex: 1; padding: 15px; border-radius: 12px; border: none; font-weight: 700; cursor: pointer; }
-        .btn-edit { background: var(--primary); color: #000; }
-        .btn-save { background: #3b82f6; color: #fff; display: none; }
-        .btn-del { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); }
+        
+        /* 버튼 공통 스타일 */
+        .btn { 
+            flex: 1; padding: 16px; border-radius: 16px; border: none; 
+            font-weight: 700; font-size: 0.95rem; cursor: pointer; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        /* 수정하기 버튼 */
+        .btn-edit { 
+            background: var(--primary); 
+            color: #064e3b; 
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+        }
+        .btn-edit:hover {
+            transform: translateY(-3px);
+            filter: brightness(1.1);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        /* 저장하기 버튼 */
+        .btn-save { 
+            background: #3b82f6; 
+            color: #fff; 
+            display: none; 
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+        }
+        .btn-save:hover {
+            transform: translateY(-3px);
+            filter: brightness(1.1);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        /* 회원 삭제 버튼 */
+        .btn-del { 
+            background: rgba(244, 63, 94, 0.08); 
+            color: var(--danger); 
+            border: 1px solid rgba(244, 63, 94, 0.2); 
+        }
+        .btn-del:hover {
+            background: var(--danger);
+            color: #fff;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(244, 63, 94, 0.3);
+        }
+
+        .btn:active { transform: scale(0.96) translateY(0); }
+
         #view_phone_link { border-bottom: 1px dashed var(--text-sub); padding-bottom: 2px; }
     </style>
 </head>
 <body>
     <div id="mainProgressBar"></div>
     <div class="container">
-        <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-            <h2 id="headerName" style="margin:0;">회원 상세</h2>
-            <a href="index.html" style="color:var(--text-sub); text-decoration:none;">목록으로</a>
+        <header>
+            <h2 id="headerName">회원 상세</h2>
+            <a href="index.html" class="back-link">목록으로</a>
         </header>
 
         <div class="info-card">
@@ -65,18 +164,33 @@
                     <option value="기타">✏️ 기타</option>
                 </select>
             </div>
-            <div class="info-row"><span class="label">잔여 PT</span><div class="value" id="view_pt">-</div><input type="number" id="edit_pt" class="edit-input"></div>
+
+            <div class="info-row">
+                <span class="label">잔여 PT</span>
+                <div class="value" id="view_pt">-</div>
+                <input type="number" id="edit_pt" class="edit-input">
+            </div>
             
             <div class="info-row">
                 <span class="label">신체 정보 (cm/kg)</span>
                 <div class="value" id="view_body">-</div>
-                <div style="display:flex; gap:5px;">
-                    <input type="number" id="edit_height" class="edit-input" placeholder="키" style="flex:1;">
-                    <input type="number" id="edit_weight" class="edit-input" placeholder="몸무게" style="flex:1;">
+                <div id="edit_body_group" style="display:none; gap:10px; margin-top:5px;">
+                    <input type="number" id="edit_height" class="edit-input" placeholder="키" style="display:block; flex:1;">
+                    <input type="number" id="edit_weight" class="edit-input" placeholder="몸무게" style="display:block; flex:1;">
                 </div>
             </div>
-            <div class="info-row"><span class="label">주소</span><div class="value" id="view_address">-</div><input type="text" id="edit_address" class="edit-input"></div>
-            <div class="info-row"><span class="label">메모</span><div class="value" id="view_memo" style="white-space:pre-wrap;">-</div><textarea id="edit_memo" class="edit-input" rows="4"></textarea></div>
+
+            <div class="info-row">
+                <span class="label">주소</span>
+                <div class="value" id="view_address">-</div>
+                <input type="text" id="edit_address" class="edit-input">
+            </div>
+
+            <div class="info-row">
+                <span class="label">메모</span>
+                <div class="value" id="view_memo" style="white-space:pre-wrap;">-</div>
+                <textarea id="edit_memo" class="edit-input" rows="4" style="resize:none;"></textarea>
+            </div>
 
             <div class="btn-group">
                 <button class="btn btn-edit" id="btnEdit" onclick="toggleEdit()">수정하기</button>
@@ -101,7 +215,7 @@
                 if (m) {
                     document.getElementById('headerName').innerText = `${m.name} 회원님`;
                     document.getElementById('view_name').innerText = m.name;
-                    document.getElementById('edit_name').value = m.name; // 로드시 입력창에도 값 넣기
+                    document.getElementById('edit_name').value = m.name;
 
                     document.getElementById('view_teacher').innerText = m.teacher || "미지정";
                     document.getElementById('edit_teacher').value = m.teacher || "";
@@ -133,12 +247,16 @@
         }
 
         function toggleEdit() {
-            const isEditing = document.getElementById('btnSave').style.display === 'block';
+            const isEditing = document.getElementById('btnSave').style.display === 'flex';
             document.querySelectorAll('.value').forEach(v => v.style.display = isEditing ? 'block' : 'none');
             document.querySelectorAll('.edit-input').forEach(e => e.style.display = isEditing ? 'none' : 'block');
-            document.getElementById('btnEdit').style.display = isEditing ? 'block' : 'none';
-            document.getElementById('btnSave').style.display = isEditing ? 'none' : 'block';
-            document.getElementById('btnDelete').style.display = isEditing ? 'block' : 'none';
+            
+            // 신체 정보 그룹 특수 처리
+            document.getElementById('edit_body_group').style.display = isEditing ? 'none' : 'flex';
+
+            document.getElementById('btnEdit').style.display = isEditing ? 'flex' : 'none';
+            document.getElementById('btnSave').style.display = isEditing ? 'none' : 'flex';
+            document.getElementById('btnDelete').style.display = isEditing ? 'flex' : 'none';
         }
 
         async function save() {
@@ -148,7 +266,7 @@
             const payload = {
                 action: "updateDetails",
                 memberId: memberId,
-                name: document.getElementById('edit_name').value, // 이름 데이터 추가
+                name: document.getElementById('edit_name').value,
                 teacher: document.getElementById('edit_teacher').value,
                 phone: document.getElementById('edit_phone').value,
                 goal: document.getElementById('edit_goal').value,
