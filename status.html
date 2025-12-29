@@ -25,7 +25,6 @@
 
         #mainProgressBar { position: fixed; top: 0; left: 0; width: 0%; height: 3px; background: var(--primary); transition: width 0.3s; z-index: 1000; }
 
-        /* 2열 그리드 레이아웃 */
         .grid-container { 
             display: grid; 
             grid-template-columns: 1fr 1fr; 
@@ -49,13 +48,11 @@
 
         .teacher-info { font-size: 0.75rem; color: var(--text-sub); margin-bottom: 10px; }
         
-        /* 미니 프로그레스 바 */
         .prog-track { width: 100%; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; }
         .prog-fill { height: 100%; background: var(--primary); transition: width 0.8s ease-out; }
         .low-fill { background: var(--danger) !important; }
 
         .alert-dot { width: 6px; height: 6px; background: var(--danger); border-radius: 50%; display: inline-block; margin-right: 4px; }
-
     </style>
 </head>
 <body>
@@ -79,7 +76,6 @@
                 const json = await res.json();
                 const members = json.data;
                 
-                // 잔여 횟수 적은 순으로 정렬
                 members.sort((a, b) => Number(a.pt) - Number(b.pt));
 
                 const grid = document.getElementById('reportGrid');
@@ -97,7 +93,7 @@
                     card.innerHTML = `
                         <div>
                             <div class="card-header">
-                                <span class="name">${isLow ? '<span class="alert-dot"></span>' : ''}${m.name}</span>
+                                <span class="name">${isLow ? '<span class="alert-dot"></span>' : ''}${m.name} 회원님</span>
                                 <span class="count ${isLow ? 'low-text' : ''}">${pt}회</span>
                             </div>
                             <div class="teacher-info">${m.teacher || '담당무'}T</div>

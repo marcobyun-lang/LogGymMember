@@ -66,7 +66,6 @@
     </div>
 
     <script>
-        // Apps Script 웹 앱 URL을 본인의 것으로 유지하세요.
         const API = "https://script.google.com/macros/s/AKfycby80GPaE8yuwvk8CE6Jq935bZL3PVwvg7a_gChDwW9JYC1YAEPsqiTf4yRxBlsIbKe8/exec";
         let allData = [];
 
@@ -80,10 +79,8 @@
                 const res = await fetch(`${API}?action=members`);
                 const json = await res.json();
                 
-                // 데이터 유효성 검사 및 정규화
                 allData = (json.data || []).filter(m => m && (m.name || m.id));
                 
-                // 선생님 목록 업데이트
                 const select = document.getElementById('teacherFilter');
                 const teachers = [...new Set(allData.map(m => String(m.teacher || '')).filter(t => t.trim() !== ''))];
                 select.innerHTML = '<option value="all">전체 담당</option>';
@@ -107,15 +104,13 @@
             const teacherTxt = document.getElementById("teacherFilter").value;
             const favs = getFavs();
             
-            // 필터링 (이름 오류 방지 처리 추가)
             let filtered = allData.filter(m => {
-                const memberName = String(m.name || "").toLowerCase(); // 문자열 변환 및 오류 방지
+                const memberName = String(m.name || "").toLowerCase();
                 const matchName = memberName.includes(searchTxt);
                 const matchTeacher = (teacherTxt === "all") || (String(m.teacher || "") === teacherTxt);
                 return matchName && matchTeacher;
             });
 
-            // 즐겨찾기 순 정렬
             filtered.sort((a, b) => {
                 const aFav = favs.includes(String(a.id)) ? 1 : 0;
                 const bFav = favs.includes(String(b.id)) ? 1 : 0;
@@ -149,7 +144,7 @@
                             <button class="star-btn ${isFav ? 'on' : ''}" onclick="toggleFav('${m.id}')">
                                 ${isFav ? '★' : '☆'}
                             </button>
-                            <span class="name">${m.name || '이름없음'}</span>
+                            <span class="name">${m.name || '이름없음'} 회원님</span>
                         </div>
                         <span class="pt-count ${pt <= 3 ? 'pt-low' : 'pt-normal'}">${teacherName}T | 잔여 ${pt}회</span>
                     </div>
@@ -178,7 +173,7 @@
         }
 
         async function checkIn(id, name) {
-            if(!confirm(`${name}님 출석하시겠습니까?`)) return;
+            if(!confirm(`${name} 회원님 출석하시겠습니까?`)) return;
             const bar = document.getElementById('mainProgressBar');
             bar.style.width = "50%";
             try {
