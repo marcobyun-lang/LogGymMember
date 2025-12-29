@@ -13,7 +13,7 @@
             --bg: #0b0f1a; 
             --card-bg: #161e2d; 
             --accent: #10b981; 
-            --accent-glow: rgba(16, 185, 129, 0.2);
+            --accent-glow: rgba(16, 185, 129, 0.4); 
             --danger: #f43f5e; 
             --text-main: #f1f5f9; 
             --text-sub: #94a3b8; 
@@ -21,10 +21,16 @@
             --glass-border: rgba(255, 255, 255, 0.08);
         }
 
+        /* 배경 디자인 수정: 역동적인 사선 패턴 및 네온 그라데이션 적용 */
         body { 
             font-family: 'Pretendard', sans-serif; 
             background: var(--bg); 
-            background-image: radial-gradient(circle at 50% -20%, #1e293b 0%, var(--bg) 80%);
+            background-image: 
+                linear-gradient(125deg, rgba(16, 185, 129, 0.05) 0%, transparent 40%),
+                linear-gradient(215deg, rgba(30, 41, 59, 0.5) 0%, transparent 50%),
+                repeating-linear-gradient(45deg, rgba(255,255,255,0.01) 0px, rgba(255,255,255,0.01) 1px, transparent 1px, transparent 20px),
+                radial-gradient(circle at 50% -20%, #1e293b 0%, var(--bg) 80%);
+            background-attachment: fixed;
             color: var(--text-main); 
             margin: 0; 
             padding: env(safe-area-inset-top) 16px 40px; 
@@ -67,6 +73,7 @@
             border: 1px solid var(--glass-border); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
             cursor: grab; transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
             user-select: none; will-change: transform;
+            backdrop-filter: blur(10px); /* 카드에도 약간의 투명감 부여 */
         }
         .member-card:active { cursor: grabbing; }
         .member-card.dragging { opacity: 0.1; transform: scale(0.95); border: 1px dashed var(--accent); }
@@ -89,12 +96,28 @@
         .list-prog-bar { height: 100%; background: linear-gradient(90deg, var(--accent), #34d399); transition: width 0.8s; }
         
         .actions { display: flex; gap: 10px; }
+        
+        /* 출석 체크 버튼 스타일 유지 (기존 네온 효과) */
         .btn-check { 
-            flex: 2; background: var(--accent); color: #064e3b; border: none; padding: 14px; border-radius: 16px; 
-            font-weight: 700; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
-            box-shadow: 0 4px 12px var(--accent-glow);
+            flex: 2; 
+            background: var(--accent); 
+            color: #064e3b; 
+            border: none; 
+            padding: 14px; 
+            border-radius: 20px; 
+            font-weight: 700; 
+            cursor: pointer; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+            box-shadow: 0 4px 15px var(--accent-glow); 
+            font-size: 0.95rem;
         }
-        .btn-check:hover { transform: translateY(-2px); filter: brightness(1.1); box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4); }
+        .btn-check:hover { 
+            transform: translateY(-2px); 
+            filter: brightness(1.05); 
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5); 
+        }
+        .btn-check:active { transform: scale(0.97); }
+
         .btn-detail { 
             flex: 1; background: rgba(255, 255, 255, 0.05); color: var(--text-main); border: 1px solid var(--glass-border); 
             padding: 14px; border-radius: 16px; text-align: center; text-decoration: none; font-size: 0.9rem; 
@@ -110,7 +133,7 @@
             <h2>PT Members</h2>
             <div class="nav-buttons">
                 <a href="add.html" class="nav-btn">회원 등록</a>
-                <a href="status.html" class="nav-btn">잔여 리포트</a>
+                <a href="status.html" class="nav-btn">잔여 PT 리포트</a>
             </div>
         </header>
         
@@ -143,20 +166,11 @@
                 allData = (json.data || []).filter(m => m && (m.name || m.id));
                 
                 const select = document.getElementById('teacherFilter');
-                
-                // 트레이너 목록 추출
                 const teachers = [...new Set(allData.map(m => String(m.teacher || '').trim()).filter(t => t !== ''))];
-                
-                // 미지정 데이터가 있는지 확인
                 const hasNoTeacher = allData.some(m => !m.teacher || String(m.teacher).trim() === "");
                 
-                // 필터 UI 구성
                 select.innerHTML = '<option value="all">전체 트레이너님</option>';
-                
-                if(hasNoTeacher) {
-                    select.innerHTML += '<option value="none">트레이너 미지정 ❓</option>';
-                }
-                
+                if(hasNoTeacher) { select.innerHTML += '<option value="none">트레이너 미지정 ❓</option>'; }
                 teachers.forEach(t => {
                     const opt = document.createElement('option');
                     opt.value = t; opt.innerText = t + ' 트레이너님 💪';
@@ -177,14 +191,8 @@
             
             let filtered = allData.filter(m => {
                 const matchName = String(m.name || "").toLowerCase().includes(searchTxt);
-                let matchTeacher = false;
-                if (teacherTxt === "all") {
-                    matchTeacher = true;
-                } else if (teacherTxt === "none") {
-                    matchTeacher = !m.teacher || String(m.teacher).trim() === "";
-                } else {
-                    matchTeacher = String(m.teacher || "") === teacherTxt;
-                }
+                let matchTeacher = (teacherTxt === "all") || 
+                                   (teacherTxt === "none" ? (!m.teacher || String(m.teacher).trim() === "") : (String(m.teacher || "") === teacherTxt));
                 return matchName && matchTeacher;
             });
 
@@ -195,7 +203,6 @@
                     return (idxA === -1 ? 999 : idxA) - (idxB === -1 ? 999 : idxB);
                 });
             }
-
             filtered.sort((a, b) => (favs.includes(String(b.id)) ? 1 : 0) - (favs.includes(String(a.id)) ? 1 : 0));
             render(filtered);
         }
@@ -209,11 +216,7 @@
                 const pt = Number(m.pt || 0);
                 const isFav = favs.includes(String(m.id));
                 const teacherName = m.teacher ? String(m.teacher).trim() : "";
-                
-                // 트레이너 정보 레이블 설정 (아이콘 포함)
-                const teacherLabel = teacherName 
-                    ? `<span>${teacherName} 트레이너님</span> <span>💪</span>` 
-                    : `<span>트레이너 미지정</span> <span>❓</span>`;
+                const teacherLabel = teacherName ? `<span>${teacherName} 트레이너님</span> <span>💪</span>` : `<span>트레이너 미지정</span> <span>❓</span>`;
 
                 const div = document.createElement("div");
                 div.className = "member-card";
@@ -229,7 +232,7 @@
                     </div>
                     <div class="info-row">
                         <span class="teacher-label">${teacherLabel}</span>
-                        <span class="pt-status" style="color:${pt <= 3 ? 'var(--danger)' : 'var(--accent)'}">잔여 ${pt}회</span>
+                        <span class="pt-status" style="color:${pt <= 3 ? 'var(--danger)' : 'var(--accent)'}">잔여 PT ${pt}회</span>
                     </div>
                     <div class="list-prog-container"><div class="list-prog-bar" style="width:${Math.min((pt/30)*100, 100)}%; ${pt<=3?'background:var(--danger)':''}"></div></div>
                     <div class="actions">

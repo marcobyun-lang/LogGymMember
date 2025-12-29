@@ -5,16 +5,18 @@
     <title>회원 상세 정보</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script>if (sessionStorage.getItem("admin") !== "1") location.href = "admin.html";</script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
         :root { 
-            --bg: #0b0f1a; 
-            --card-bg: #161e2d; 
+            --bg: #05080f; 
+            --card-bg: #111827; 
             --primary: #10b981; 
+            --primary-glow: rgba(16, 185, 129, 0.2);
             --danger: #f43f5e; 
             --text-main: #f1f5f9; 
             --text-sub: #94a3b8; 
             --glass-border: rgba(255, 255, 255, 0.08);
+            --grid-color: rgba(16, 185, 129, 0.04);
         }
 
         body { 
@@ -23,91 +25,114 @@
             color: var(--text-main); 
             margin: 0; 
             padding: 20px;
-            background-image: radial-gradient(circle at 50% -20%, #1e293b 0%, var(--bg) 80%);
+            background-image: 
+                radial-gradient(circle at 100% 0%, rgba(16, 185, 129, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 0% 100%, rgba(16, 185, 129, 0.05) 0%, transparent 40%),
+                var(--bg);
+            -webkit-font-smoothing: antialiased;
+            position: relative;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
-        .container { max-width: 500px; margin: 0 auto; }
-        #mainProgressBar { position: fixed; top: 0; left: 0; width: 0%; height: 4px; background: var(--primary); transition: width 0.3s; z-index: 1000; }
+        /* 공통 역동적 사선 패턴 */
+        body::before {
+            content: "";
+            position: fixed;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background-image: 
+                repeating-linear-gradient(45deg, var(--grid-color) 0px, var(--grid-color) 1px, transparent 1px, transparent 15px),
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: 100px 100px, 40px 40px, 40px 40px;
+            transform: rotate(-5deg);
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.6;
+        }
 
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
-        header h2 { margin: 0; font-size: 1.4rem; font-weight: 800; }
+        .container { max-width: 500px; margin: 0 auto; position: relative; z-index: 1; }
+        #mainProgressBar { position: fixed; top: 0; left: 0; width: 0%; height: 4px; background: var(--primary); transition: width 0.3s; z-index: 1000; box-shadow: 0 0 10px var(--primary); }
+
+        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding: 10px 0; }
+        header h2 { 
+            margin: 0; font-size: 1.5rem; font-weight: 900; letter-spacing: -1px;
+            background: linear-gradient(to bottom right, #fff 30%, var(--primary)); 
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
         
-        /* 목록으로 버튼 효과 */
         .back-link { 
             color: var(--text-sub); 
             text-decoration: none; 
             font-size: 0.85rem; 
-            padding: 8px 16px; 
+            padding: 10px 18px; 
             border-radius: 12px; 
             border: 1px solid var(--glass-border); 
-            background: rgba(255,255,255,0.03); 
+            background: rgba(255,255,255,0.05); 
+            backdrop-filter: blur(8px);
             transition: all 0.3s ease; 
         }
         .back-link:hover {
             background: rgba(255,255,255,0.1);
             color: #fff;
-            transform: translateY(-2px);
-            border-color: var(--text-sub);
+            transform: translateX(-3px);
         }
 
         .info-card { 
-            background: var(--card-bg); 
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(20px);
             border-radius: 24px; 
-            padding: 25px; 
-            border: 1px solid var(--glass-border); 
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3);
+            padding: 30px; 
+            border: 1px solid rgba(255, 255, 255, 0.05); 
+            box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5);
         }
 
-        .info-row { margin-bottom: 20px; }
-        .label { font-size: 0.85rem; color: var(--text-sub); display: block; margin-bottom: 8px; font-weight: 500; }
-        .value { font-size: 1.1rem; font-weight: 600; color: var(--text-main); }
+        .info-row { margin-bottom: 22px; }
+        .label { font-size: 0.85rem; color: var(--text-sub); display: block; margin-bottom: 8px; font-weight: 600; padding-left: 2px; }
+        .value { font-size: 1.1rem; font-weight: 700; color: var(--text-main); line-height: 1.4; }
         
         .edit-input { 
-            width: 100%; padding: 12px; border-radius: 12px; 
-            border: 1px solid var(--glass-border); background: #0b0f1a; 
+            width: 100%; padding: 14px; border-radius: 14px; 
+            border: 1px solid var(--glass-border); background: rgba(5, 8, 15, 0.8); 
             color: white; display: none; margin-top: 5px; box-sizing: border-box; 
-            font-family: inherit; font-size: 1rem; outline: none;
+            font-family: inherit; font-size: 1rem; outline: none; transition: all 0.3s;
         }
-        .edit-input:focus { border-color: var(--primary); }
+        .edit-input:focus { 
+            border-color: var(--primary); 
+            box-shadow: 0 0 0 4px var(--primary-glow);
+        }
 
-        .btn-group { display: flex; gap: 10px; margin-top: 30px; }
+        .btn-group { display: flex; gap: 10px; margin-top: 35px; }
         
-        /* 버튼 공통 스타일 */
         .btn { 
-            flex: 1; padding: 16px; border-radius: 16px; border: none; 
-            font-weight: 700; font-size: 0.95rem; cursor: pointer; 
+            flex: 1; padding: 18px; border-radius: 16px; border: none; 
+            font-weight: 800; font-size: 1rem; cursor: pointer; 
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
             display: flex; align-items: center; justify-content: center;
         }
 
-        /* 수정하기 버튼 */
         .btn-edit { 
             background: var(--primary); 
-            color: #064e3b; 
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+            color: #000; 
+            box-shadow: 0 10px 20px -5px var(--primary-glow);
         }
         .btn-edit:hover {
-            transform: translateY(-3px);
+            transform: translateY(-3px) scale(1.02);
             filter: brightness(1.1);
-            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
         }
 
-        /* 저장하기 버튼 */
         .btn-save { 
             background: #3b82f6; 
             color: #fff; 
             display: none; 
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+            box-shadow: 0 10px 20px -5px rgba(59, 130, 246, 0.3);
         }
         .btn-save:hover {
-            transform: translateY(-3px);
-            filter: brightness(1.1);
-            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+            transform: translateY(-3px) scale(1.02);
         }
 
-        /* 회원 삭제 버튼 */
         .btn-del { 
-            background: rgba(244, 63, 94, 0.08); 
+            background: rgba(244, 63, 94, 0.1); 
             color: var(--danger); 
             border: 1px solid rgba(244, 63, 94, 0.2); 
         }
@@ -115,12 +140,25 @@
             background: var(--danger);
             color: #fff;
             transform: translateY(-3px);
-            box-shadow: 0 8px 20px rgba(244, 63, 94, 0.3);
         }
 
-        .btn:active { transform: scale(0.96) translateY(0); }
+        .btn:active { transform: scale(0.96); }
 
-        #view_phone_link { border-bottom: 1px dashed var(--text-sub); padding-bottom: 2px; }
+        #view_phone_link { 
+            color: var(--primary);
+            text-decoration: none;
+            border-bottom: 1px dashed var(--primary);
+            padding-bottom: 1px;
+        }
+
+        /* 셀렉트 화살표 */
+        select.edit-input {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
+            background-size: 18px;
+        }
     </style>
 </head>
 <body>
@@ -128,7 +166,7 @@
     <div class="container">
         <header>
             <h2 id="headerName">회원 상세</h2>
-            <a href="index.html" class="back-link">목록으로</a>
+            <a href="index.html" class="back-link">← 목록</a>
         </header>
 
         <div class="info-card">
@@ -139,21 +177,21 @@
             </div>
 
             <div class="info-row">
-                <span class="label">담당 선생님</span>
+                <span class="label">담당 선생님 👤</span>
                 <div class="value" id="view_teacher">-</div>
                 <input type="text" id="edit_teacher" class="edit-input">
             </div>
             
             <div class="info-row">
-                <span class="label">연락처 (터치 시 통화)</span>
+                <span class="label">연락처 (터치 시 통화) 📞</span>
                 <div class="value">
-                    <a id="view_phone_link" href="#" style="color:inherit; text-decoration:none;">-</a>
+                    <a id="view_phone_link" href="#">-</a>
                 </div>
                 <input type="tel" id="edit_phone" class="edit-input">
             </div>
 
             <div class="info-row">
-                <span class="label">운동 목적</span>
+                <span class="label">운동 목적 🎯</span>
                 <div class="value" id="view_goal">-</div>
                 <select id="edit_goal" class="edit-input">
                     <option value="다이어트">🔥 다이어트</option>
@@ -166,13 +204,13 @@
             </div>
 
             <div class="info-row">
-                <span class="label">잔여 PT</span>
+                <span class="label">잔여 PT 횟수</span>
                 <div class="value" id="view_pt">-</div>
                 <input type="number" id="edit_pt" class="edit-input">
             </div>
             
             <div class="info-row">
-                <span class="label">신체 정보 (cm/kg)</span>
+                <span class="label">신체 정보 (cm/kg) 📏</span>
                 <div class="value" id="view_body">-</div>
                 <div id="edit_body_group" style="display:none; gap:10px; margin-top:5px;">
                     <input type="number" id="edit_height" class="edit-input" placeholder="키" style="display:block; flex:1;">
@@ -181,13 +219,13 @@
             </div>
 
             <div class="info-row">
-                <span class="label">주소</span>
+                <span class="label">주소 🏠</span>
                 <div class="value" id="view_address">-</div>
                 <input type="text" id="edit_address" class="edit-input">
             </div>
 
             <div class="info-row">
-                <span class="label">메모</span>
+                <span class="label">상세 메모 🗒️</span>
                 <div class="value" id="view_memo" style="white-space:pre-wrap;">-</div>
                 <textarea id="edit_memo" class="edit-input" rows="4" style="resize:none;"></textarea>
             </div>
@@ -228,7 +266,7 @@
                     document.getElementById('view_goal').innerText = m.goal || "미설정";
                     document.getElementById('edit_goal').value = m.goal || "다이어트";
 
-                    document.getElementById('view_pt').innerText = `${m.pt}회`;
+                    document.getElementById('view_pt').innerText = `${m.pt}회 남음`;
                     document.getElementById('edit_pt').value = m.pt;
 
                     document.getElementById('view_body').innerText = `${m.height || 0}cm / ${m.weight || 0}kg`;
@@ -251,9 +289,7 @@
             document.querySelectorAll('.value').forEach(v => v.style.display = isEditing ? 'block' : 'none');
             document.querySelectorAll('.edit-input').forEach(e => e.style.display = isEditing ? 'none' : 'block');
             
-            // 신체 정보 그룹 특수 처리
             document.getElementById('edit_body_group').style.display = isEditing ? 'none' : 'flex';
-
             document.getElementById('btnEdit').style.display = isEditing ? 'flex' : 'none';
             document.getElementById('btnSave').style.display = isEditing ? 'none' : 'flex';
             document.getElementById('btnDelete').style.display = isEditing ? 'flex' : 'none';
