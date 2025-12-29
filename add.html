@@ -8,7 +8,7 @@
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
         :root { 
-            --bg: #05080f; 
+            --bg: #05080f; /* index와 동일한 더 깊은 다크 블루 */
             --card-bg: #111827; 
             --primary: #10b981; 
             --primary-glow: rgba(16, 185, 129, 0.2);
@@ -21,7 +21,7 @@
         body { 
             font-family: 'Pretendard', sans-serif; 
             background: var(--bg); 
-            /* 에너지가 느껴지는 방사형 그라데이션 배경 */
+            /* index의 더 밝은 방사형 광채 적용 */
             background-image: 
                 radial-gradient(circle at 100% 0%, rgba(16, 185, 129, 0.08) 0%, transparent 40%),
                 radial-gradient(circle at 0% 100%, rgba(16, 185, 129, 0.05) 0%, transparent 40%),
@@ -35,7 +35,7 @@
             overflow-x: hidden;
         }
 
-        /* 역동적인 사선 + 격자 패턴 */
+        /* index의 역동적인 사선 + 격자 패턴 완벽 복사 */
         body::before {
             content: "";
             position: fixed;
@@ -77,11 +77,11 @@
             background: rgba(255,255,255,0.1);
             color: #fff;
             transform: translateX(-3px);
-            border-color: var(--text-sub);
+            border-color: var(--primary);
         }
 
         .card { 
-            background: linear-gradient(135deg, rgba(31, 41, 55, 0.8), rgba(17, 24, 39, 0.9));
+            background: rgba(17, 24, 39, 0.7); /* index의 카드 투명도 및 블러 적용 */
             backdrop-filter: blur(20px);
             border-radius: 24px; 
             padding: 30px; 
@@ -128,7 +128,6 @@
             box-shadow: none;
         }
 
-        /* 셀렉트 화살표 커스텀 (다크모드용) */
         select {
             appearance: none;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");

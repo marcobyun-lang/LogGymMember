@@ -8,7 +8,7 @@
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
         :root {
-            --bg: #05080f;
+            --bg: #05080f; /* index와 동일한 깊은 배경색 */
             --card-bg: #111827;
             --primary: #10b981;
             --danger: #f43f5e;
@@ -23,6 +23,7 @@
             background: var(--bg); 
             color: var(--text-main); 
             margin: 0; padding: 20px;
+            /* index의 더 밝은 방사형 광채 적용 */
             background-image: 
                 radial-gradient(circle at 100% 0%, rgba(16, 185, 129, 0.08) 0%, transparent 40%),
                 radial-gradient(circle at 0% 100%, rgba(16, 185, 129, 0.05) 0%, transparent 40%),
@@ -34,6 +35,7 @@
             overscroll-behavior-y: contain;
         }
 
+        /* index의 역동적인 사선 + 격자 패턴 완벽 복사 */
         body::before {
             content: "";
             position: fixed;
@@ -59,7 +61,6 @@
             text-transform: uppercase;
         }
 
-        /* 필터 버튼 스타일 추가 */
         .filter-bar {
             display: flex;
             gap: 8px;
@@ -71,6 +72,7 @@
             border-radius: 12px;
             border: 1px solid var(--glass-border);
             background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(8px);
             color: var(--text-sub);
             font-size: 0.85rem;
             font-weight: 600;
@@ -81,6 +83,7 @@
             background: var(--primary);
             color: #05080f;
             border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
         }
 
         .back-link { 
@@ -101,6 +104,7 @@
             background: rgba(255, 255, 255, 0.1);
             color: #fff;
             transform: translateY(-2px);
+            border-color: var(--primary);
         }
 
         #mainProgressBar { position: fixed; top: 0; left: 0; width: 0%; height: 3px; background: var(--primary); z-index: 1000; box-shadow: 0 0 10px var(--primary); }
@@ -175,18 +179,16 @@
         const API = "https://script.google.com/macros/s/AKfycby80GPaE8yuwvk8CE6Jq935bZL3PVwvg7a_gChDwW9JYC1YAEPsqiTf4yRxBlsIbKe8/exec";
         const ORDER_KEY = 'member_display_order';
         let currentData = [];
-        let currentSort = 'asc'; // 기본값: 오름차순
+        let currentSort = 'asc';
 
         function getSavedOrder() { return JSON.parse(localStorage.getItem(ORDER_KEY) || '[]'); }
         function saveOrder(order) { localStorage.setItem(ORDER_KEY, JSON.stringify(order)); }
 
-        // 정렬 변경 함수
         function setSort(type) {
             currentSort = type;
             document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
             if(type === 'asc') document.getElementById('sortAsc').classList.add('active');
             else document.getElementById('sortDesc').classList.add('active');
-            
             renderData();
         }
 
@@ -197,10 +199,8 @@
                 const res = await fetch(`${API}?action=members`);
                 const json = await res.json();
                 currentData = json.data.filter(m => m && m.name);
-                
                 bar.style.width = "70%";
                 renderData();
-
                 bar.style.width = "100%";
                 setTimeout(() => { bar.style.width = "0"; }, 500);
             } catch (e) { console.error(e); }
@@ -209,15 +209,12 @@
         function renderData() {
             const grid = document.getElementById('reportGrid');
             grid.innerHTML = "";
-
-            // 데이터 정렬 로직
             let sortedMembers = [...currentData];
             if(currentSort === 'asc') {
                 sortedMembers.sort((a, b) => Number(a.pt || 0) - Number(b.pt || 0));
             } else {
                 sortedMembers.sort((a, b) => Number(b.pt || 0) - Number(a.pt || 0));
             }
-
             sortedMembers.forEach((m) => {
                 const pt = Number(m.pt || 0);
                 const isLow = pt <= 3;
@@ -238,7 +235,6 @@
                     </div>
                     <div class="prog-track"><div class="prog-fill ${isLow ? 'low-fill' : ''}" style="width: ${Math.min((pt/20)*100, 100)}%"></div></div>
                 `;
-
                 card.addEventListener('dragstart', () => setTimeout(() => card.classList.add('dragging'), 0));
                 card.addEventListener('dragend', () => {
                     card.classList.remove('dragging');
@@ -247,7 +243,6 @@
                 grid.appendChild(card);
             });
         }
-
         loadReport();
     </script>
 </body>
