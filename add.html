@@ -8,7 +8,7 @@
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <style>
         :root { 
-            --bg: #05080f; /* index와 동일한 더 깊은 다크 블루 */
+            --bg: #05080f; 
             --card-bg: #111827; 
             --primary: #10b981; 
             --primary-glow: rgba(16, 185, 129, 0.2);
@@ -21,7 +21,6 @@
         body { 
             font-family: 'Pretendard', sans-serif; 
             background: var(--bg); 
-            /* index의 더 밝은 방사형 광채 적용 */
             background-image: 
                 radial-gradient(circle at 100% 0%, rgba(16, 185, 129, 0.08) 0%, transparent 40%),
                 radial-gradient(circle at 0% 100%, rgba(16, 185, 129, 0.05) 0%, transparent 40%),
@@ -35,7 +34,6 @@
             overflow-x: hidden;
         }
 
-        /* index의 역동적인 사선 + 격자 패턴 완벽 복사 */
         body::before {
             content: "";
             position: fixed;
@@ -81,7 +79,7 @@
         }
 
         .card { 
-            background: rgba(17, 24, 39, 0.7); /* index의 카드 투명도 및 블러 적용 */
+            background: rgba(17, 24, 39, 0.7); 
             backdrop-filter: blur(20px);
             border-radius: 24px; 
             padding: 30px; 
@@ -104,6 +102,12 @@
             border-color: var(--primary); 
             background: rgba(16, 185, 129, 0.08);
             box-shadow: 0 0 0 4px var(--primary-glow);
+        }
+
+        /* 셀렉트 박스 옵션 배경색 및 글자색 수정 */
+        select option {
+            background-color: #111827; /* 카드 배경색과 동일하게 */
+            color: #f1f5f9;
         }
 
         .btn-submit { 
