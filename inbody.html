@@ -2,121 +2,212 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>인바디 분석 리포트</title>
+    <title>InBody 체성분 분석</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>if (sessionStorage.getItem("admin") !== "1") location.href = "admin.html";</script>
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --bg: #0f172a; --card-bg: #1e293b; --primary: #22c55e; --text-main: #f8fafc; --text-sub: #94a3b8; }
-        body { font-family: 'Pretendard', sans-serif; background: var(--bg); color: var(--text-main); margin: 0; padding: 20px; }
-        .container { max-width: 500px; margin: 0 auto; }
-        header { display: flex; align-items: center; gap: 15px; margin-bottom: 25px; }
-        .back-btn { background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer; }
-        
-        .chart-card { background: var(--card-bg); border-radius: 24px; padding: 20px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05); }
-        .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
-        .stat-item { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 16px; text-align: center; }
-        .stat-label { font-size: 0.75rem; color: var(--text-sub); display: block; margin-bottom: 5px; }
-        .stat-value { font-size: 1rem; font-weight: 700; color: var(--primary); }
-        
-        .input-group { background: var(--card-bg); border-radius: 24px; padding: 25px; }
-        .input-group h4 { margin: 0 0 20px 0; font-size: 1.1rem; }
-        input { width: 100%; padding: 14px; margin: 8px 0; border-radius: 12px; border: 1px solid #334155; background: #0f172a; color: white; box-sizing: border-box; font-family: inherit; font-size: 1rem; }
-        .save-btn { width: 100%; padding: 16px; border-radius: 12px; border: none; background: var(--primary); color: #000; font-weight: 700; margin-top: 15px; cursor: pointer; font-size: 1rem; }
+        :root {
+            --bg: #05080f;
+            --card-bg: #111827;
+            --primary: #10b981;
+            --text-main: #f1f5f9;
+            --text-sub: #94a3b8;
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --grid-color: rgba(16, 185, 129, 0.04);
+        }
+
+        #mainLoaderContainer { position: fixed; top: 0; left: 0; width: 100%; height: 3px; background: rgba(0,0,0,0.2); z-index: 2000; }
+        #mainProgressBar { width: 0%; height: 100%; background: linear-gradient(90deg, #10b981, #34d399); box-shadow: 0 0 10px var(--primary); transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            margin: 0; padding: 20px;
+            background-image: radial-gradient(circle at 100% 0%, rgba(16, 185, 129, 0.08) 0%, transparent 40%), var(--bg);
+            min-height: 100vh;
+        }
+
+        .container { width: 100%; max-width: 600px; margin: 0 auto; }
+        header { margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+        header h2 { font-size: 1.6rem; font-weight: 900; background: linear-gradient(to bottom right, #fff 30%, var(--primary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        .chart-container { background: rgba(17, 24, 39, 0.7); backdrop-filter: blur(15px); border-radius: 20px; padding: 20px; border: 1px solid rgba(255, 255, 255, 0.05); margin-bottom: 20px; }
+
+        /* AI 평가 섹션 스타일 */
+        .ai-feedback-container {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px dashed var(--primary);
+            border-radius: 15px;
+            padding: 15px;
+            margin-top: 15px;
+            display: none; /* 데이터 로드 후 표시 */
+        }
+        .ai-title { color: var(--primary); font-weight: 800; margin-bottom: 8px; font-size: 0.95rem; }
+        .ai-text { font-size: 0.9rem; line-height: 1.5; color: var(--text-main); }
+
+        .input-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; background: rgba(17, 24, 39, 0.7); padding: 20px; border-radius: 20px; border: 1px solid rgba(255, 255, 255, 0.05); }
+        .input-group input { background: rgba(0,0,0,0.3); border: 1px solid var(--glass-border); color: #fff; padding: 12px; border-radius: 12px; font-size: 0.95rem; width: 100%; box-sizing: border-box; }
+        .input-group input[type="date"] { grid-column: span 3; }
+        .btn-add { grid-column: span 3; background: var(--primary); color: #05080f; border: none; padding: 14px; border-radius: 12px; font-weight: 800; font-size: 1rem; cursor: pointer; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.9rem; }
+        th { text-align: left; color: var(--text-sub); padding: 10px; border-bottom: 1px solid var(--glass-border); }
+        td { padding: 12px 10px; border-bottom: 1px solid rgba(255,255,255,0.03); }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <button class="back-btn" onclick="history.back()">←</button>
-            <h2 style="margin:0">인바디 트렌드</h2>
-        </header>
+<div id="mainLoaderContainer"><div id="mainProgressBar"></div></div>
+<div class="container">
+    <header>
+        <h2 id="memberName">회원님 InBody</h2>
+        <a href="index.html" style="color:var(--text-sub); text-decoration:none; font-size:0.85rem; border:1px solid var(--glass-border); padding:8px 15px; border-radius:10px;">닫기</a>
+    </header>
 
-        <div class="chart-card">
-            <div class="stat-grid">
-                <div class="stat-item"><span class="stat-label">체중</span><span id="currWeight" class="stat-value">-</span></div>
-                <div class="stat-item"><span class="stat-label">골격근</span><span id="currMuscle" class="stat-value">-</span></div>
-                <div class="stat-item"><span class="stat-label">체지방</span><span id="currFat" class="stat-value">-</span></div>
-            </div>
-            <div style="position: relative; height:200px; width:100%;">
-                <canvas id="inbodyChart"></canvas>
-            </div>
-        </div>
-
-        <div class="input-group">
-            <h4>📏 새 측정 기록</h4>
-            <input type="number" id="weight" placeholder="체중 (kg)" step="0.1">
-            <input type="number" id="muscle" placeholder="골격근량 (kg)" step="0.1">
-            <input type="number" id="fat" placeholder="체지방률 (%)" step="0.1">
-            <button class="save-btn" id="saveBtn" onclick="saveInBody()">기록 저장하기</button>
+    <div class="chart-container">
+        <canvas id="inbodyChart"></canvas>
+        <div id="aiSection" class="ai-feedback-container">
+            <div class="ai-title">💡 AI 맞춤 분석 피드백</div>
+            <div id="aiFeedbackText" class="ai-text">데이터를 분석 중입니다...</div>
         </div>
     </div>
 
-    <script>
-        const API = "https://script.google.com/macros/s/AKfycbyOwBxiLuTC1xFMxedYnOUhfKF4cnWfI-SB-t4VDpvMnVTbCLaO4sAhaVrffLkNWoc4/exec";
-        const urlParams = new URLSearchParams(window.location.search);
-        const memberId = urlParams.get('id');
+    <div class="input-group">
+        <input type="date" id="inDate">
+        <input type="number" id="inWeight" placeholder="체중 (kg)" step="0.1">
+        <input type="number" id="inMuscle" placeholder="골격근 (kg)" step="0.1">
+        <input type="number" id="inFat" placeholder="체지방 (kg)" step="0.1">
+        <button class="btn-add" onclick="addRecord()">기록 추가하기</button>
+    </div>
 
-        async function loadInBody() {
-            try {
-                const res = await fetch(`${API}?action=getInBody&memberId=${memberId}`);
-                const result = await res.json();
-                if(result.result === "success") {
-                    if(result.data.length > 0) {
-                        const last = result.data[result.data.length - 1];
-                        document.getElementById('currWeight').innerText = last.weight + 'kg';
-                        document.getElementById('currMuscle').innerText = last.muscle + 'kg';
-                        document.getElementById('currFat').innerText = last.fat + '%';
-                        renderChart(result.data);
-                    }
-                }
-            } catch(e) { console.error(e); }
+    <div class="chart-container">
+        <h3>최근 기록</h3>
+        <table id="historyTable">
+            <thead>
+            <tr><th>날짜</th><th>체중/근육/지방</th><th>지방률</th><th>삭제</th></tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const API = "https://script.google.com/macros/s/AKfycbxhrJ5d2zjHQqZXB8riFNQwpW1jxCmP7K8d6YjEfiJRCyCSqRvGv5M59VFT7VHKeMII/exec";
+    const urlParams = new URLSearchParams(window.location.search);
+    const memberId = urlParams.get('id');
+    let chartInstance = null;
+
+    const now = new Date();
+    const today = new Date(now.getTime() - (now.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+    document.getElementById('inDate').value = today;
+
+    function formatDate(dateStr) {
+        if (!dateStr) return "";
+        if (dateStr.length === 10 && dateStr.indexOf('-') === 4) return dateStr;
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) return dateStr;
+        const kstDate = new Date(date.getTime() + (9 * 60 * 60 * 1000));
+        return kstDate.toISOString().split('T')[0];
+    }
+
+    async function loadData() {
+        if(!memberId) return;
+        const bar = document.getElementById('mainProgressBar');
+        if(bar) bar.style.width = "30%";
+        try {
+            const res = await fetch(`${API}?action=inbody&memberId=${memberId}`);
+            const json = await res.json();
+            if(json.result === "success") {
+                const processedData = json.data.map(d => ({ ...d, date: formatDate(d.date) }));
+                renderChart(processedData);
+                renderTable(processedData);
+                generateAIFeedback(processedData); // 피드백 생성 함수 호출
+            }
+            if(bar) { bar.style.width = "100%"; setTimeout(() => bar.style.width = "0", 500); }
+        } catch(e) { console.error(e); if(bar) bar.style.width = "0"; }
+    }
+
+    // 간단한 AI 분석 로직 (향후 LLM API 연동 가능)
+    function generateAIFeedback(data) {
+        if (data.length === 0) return;
+        const aiSection = document.getElementById('aiSection');
+        const feedbackText = document.getElementById('aiFeedbackText');
+        aiSection.style.display = 'block';
+
+        const latest = data[data.length - 1];
+        const prev = data.length > 1 ? data[data.length - 2] : null;
+
+        let message = `${latest.date} 기준, `;
+        if (prev) {
+            const weightDiff = (latest.weight - prev.weight).toFixed(1);
+            const muscleDiff = (latest.muscle - prev.muscle).toFixed(1);
+
+            if (muscleDiff > 0) message += `지난번보다 골격근량이 ${muscleDiff}kg 늘어났습니다! 아주 좋은 흐름입니다. `;
+            else if (muscleDiff < 0) message += `근손실이 조금 발생했습니다. 단백질 섭취량을 늘려보세요. `;
+
+            if (parseFloat(latest.fatPercent) > 30) message += `현재 체지방률이 다소 높으므로 유산소 비중을 높이는 것을 권장합니다.`;
+        } else {
+            message += "첫 기록입니다. 앞으로의 변화를 함께 지켜봐요!";
         }
+        feedbackText.innerText = message;
+    }
 
-        function renderChart(data) {
-            const ctx = document.getElementById('inbodyChart').getContext('2d');
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: data.map(d => d.date.split('-').slice(1).join('/')),
-                    datasets: [
-                        { label: '체중', data: data.map(d => d.weight), borderColor: '#3b82f6', tension: 0.3, pointRadius: 4 },
-                        { label: '골격근', data: data.map(d => d.muscle), borderColor: '#22c55e', tension: 0.3, pointRadius: 4 },
-                        { label: '체지방', data: data.map(d => d.fat), borderColor: '#ef4444', tension: 0.3, pointRadius: 4 }
-                    ]
-                },
-                options: { 
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: true, labels: { color: '#94a3b8', boxWidth: 10, font: { size: 10 } } } },
-                    scales: { 
-                        y: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
-                        x: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { display: false } }
-                    }
-                }
-            });
+    function renderChart(data) {
+        const ctx = document.getElementById('inbodyChart').getContext('2d');
+        if(chartInstance) chartInstance.destroy();
+        chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.map(d => d.date.substring(5)),
+                datasets: [
+                    { label: '체중(kg)', data: data.map(d => d.weight), borderColor: '#10b981', tension: 0.3 },
+                    { label: '골격근(kg)', data: data.map(d => d.muscle), borderColor: '#3b82f6', tension: 0.3 },
+                    { label: '체지방(kg)', data: data.map(d => d.fatMass), borderColor: '#f43f5e', tension: 0.3 }
+                ]
+            },
+            options: { responsive: true, plugins: { legend: { labels: { color: '#94a3b8' } } } }
+        });
+    }
+
+    function renderTable(data) {
+        const tbody = document.querySelector('#historyTable tbody');
+        tbody.innerHTML = data.slice().reverse().map(d => `
+            <tr>
+                <td>${d.date}</td>
+                <td><span style="color:#fff">${d.weight}</span> / <span style="color:#3b82f6">${d.muscle}</span> / <span style="color:#f43f5e">${d.fatMass}</span></td>
+                <td>${d.fatPercent}%</td>
+                <td><button onclick="deleteRecord('${d.date}')" style="background:none; border:none; color:#ef4444; cursor:pointer;">❌</button></td>
+            </tr>
+        `).join('');
+    }
+
+    async function addRecord() {
+        const date = document.getElementById('inDate').value;
+        const weight = document.getElementById('inWeight').value;
+        const muscle = document.getElementById('inMuscle').value;
+        const fat = document.getElementById('inFat').value;
+        if(!weight || !muscle || !fat) return alert("모든 값을 입력해주세요.");
+
+        const payload = { action: "addInBody", memberId: memberId, date: date, weight: weight, muscle: muscle, fatMass: fat, fatPercent: (fat/weight*100).toFixed(1) };
+        if(confirm("기록을 추가하시겠습니까?")) {
+            await fetch(API, { method: 'POST', body: JSON.stringify(payload) });
+            alert("추가되었습니다.");
+            loadData();
+            ["inWeight", "inMuscle", "inFat"].forEach(id => document.getElementById(id).value = "");
         }
+    }
 
-        async function saveInBody() {
-            const w = document.getElementById('weight').value;
-            const m = document.getElementById('muscle').value;
-            const f = document.getElementById('fat').value;
-            if(!w || !m || !f) { alert("모든 수치를 입력해주세요."); return; }
+    async function deleteRecord(date) {
+        if(!confirm(`${date} 기록을 삭제하시겠습니까?`)) return;
+        const res = await fetch(API, { method: 'POST', body: JSON.stringify({ action: "deleteInBody", memberId: memberId, date: date }) });
+        const json = await res.json();
+        if (json.result === "success") { alert("삭제되었습니다."); loadData(); }
+        else { alert("삭제 실패: " + json.message); }
+    }
 
-            const btn = document.getElementById('saveBtn');
-            btn.disabled = true; btn.innerText = "저장 중...";
-
-            const payload = { action: "addInBody", memberId, weight: w, muscle: m, fat: f };
-            try {
-                const res = await fetch(API, { method: 'POST', body: JSON.stringify(payload) });
-                const result = await res.json();
-                if(result.result === "success") {
-                    alert("성공적으로 저장되었습니다.");
-                    location.reload();
-                }
-            } catch(e) { alert("오류 발생"); btn.disabled = false; btn.innerText = "기록 저장하기"; }
-        }
-        loadInBody();
-    </script>
+    loadData();
+</script>
 </body>
 </html>

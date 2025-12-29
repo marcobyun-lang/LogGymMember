@@ -1,16 +1,20 @@
 /************************
- * PT 회원관리 시스템 Backend (통합 수정본)
+ * PT 회원관리 시스템 Backend
  ************************/
 
 const MEMBERS = "Members";
 const ATTEND = "Attendance";
 const ADMINS = "Admins";
+const INBODY = "InBody";
 
 function doGet(e) {
   const action = e.parameter.action;
+  if (action === "login") return loginCheck(e.parameter.id, e.parameter.password);
   if (action === "members") return getMembers();
-  if (action === "attendance") return getAttendance(e.parameter.memberId);
-  return output({ result: "error" });
+  if (action === "calendar" || action === "attendance") return getAttendance(e.parameter.memberId);
+  if (action === "checkin") return checkIn(e.parameter.memberId);
+  if (action === "inbody") return getInBody(e.parameter.memberId);
+  return output({ result: "error", message: "Invalid action" });
 }
 
 function doPost(e) {
@@ -19,84 +23,30 @@ function doPost(e) {
 
   if (data.action === "login") return loginCheck(data.id, data.password);
   if (data.action === "addMember") return addMember(data);
+  if (data.action === "checkin") return checkIn(data.memberId);
   if (data.action === "updateDetails") return updateMemberDetails(data);
   if (data.action === "deleteMember") return deleteMember(data.memberId);
-  if (data.action === "checkin") return checkIn(data.memberId);
-  
+  if (data.action === "addInBody") return addInBody(data);
+  if (data.action === "deleteInBody") return deleteInBody(data);
+
   return output({ result: "error" });
 }
 
-// 1. 회원 등록 (add.html 대응)
-function addMember(data) {
-  const sheet = SpreadsheetApp.getActive().getSheetByName(MEMBERS);
-  // 시트 열 순서: ID, 이름, 강사, PT횟수, 연락처, 주소, 키, 몸무게, 목표, 메모
-  const newId = new Date().getTime().toString();
-  sheet.appendRow([
-    newId, 
-    data.name, 
-    data.teacher, 
-    data.pt, 
-    data.phone, 
-    data.address, 
-    data.height || "", 
-    data.weight || "", 
-    data.goal, 
-    data.memo
-  ]);
-  return output({ result: "success" });
-}
-
-// 2. 회원 정보 수정 (member.html 대응)
 function updateMemberDetails(data) {
-  const sheet = SpreadsheetApp.getActive().getSheetByName(MEMBERS);
+  const ss = SpreadsheetApp.getActive();
+  const sheet = ss.getSheetByName(MEMBERS);
   const rows = sheet.getDataRange().getValues();
   for (let i = 1; i < rows.length; i++) {
     if (String(rows[i][0]) === String(data.memberId)) {
-      const row = i + 1;
-      sheet.getRange(row, 2).setValue(data.name);    // 이름 수정 추가
-      sheet.getRange(row, 3).setValue(data.teacher); 
-      sheet.getRange(row, 4).setValue(data.pt);      
-      sheet.getRange(row, 5).setValue(data.phone);   
-      sheet.getRange(row, 6).setValue(data.address); 
-      sheet.getRange(row, 7).setValue(data.height);  
-      sheet.getRange(row, 8).setValue(data.weight);  
-      sheet.getRange(row, 9).setValue(data.goal);    
-      sheet.getRange(row, 10).setValue(data.memo);   
-      return output({ result: "success" });
-    }
-  }
-  return output({ result: "fail" });
-}
-
-// 3. 출석 조회 (한국 시간 포맷)
-function getAttendance(memberId) {
-  const sheet = SpreadsheetApp.getActive().getSheetByName(ATTEND);
-  if (!sheet) return output({ result: "success", data: [] });
-  const rows = sheet.getDataRange().getValues();
-  rows.shift();
-  const data = rows.filter(r => String(r[0]) === String(memberId)).map(r => ({
-    date: r[1] instanceof Date ? Utilities.formatDate(r[1], "Asia/Seoul", "yyyy년 MM월 dd일") : String(r[1]),
-    time: String(r[2]) // 이미 HH:mm 형식으로 저장된 경우
-  }));
-  return output({ result: "success", data: data });
-}
-
-// 4. 출석 체크 (한국 시간 저장)
-function checkIn(memberId) {
-  const ss = SpreadsheetApp.getActive();
-  const mSheet = ss.getSheetByName(MEMBERS);
-  const aSheet = ss.getSheetByName(ATTEND);
-  const mRows = mSheet.getDataRange().getValues();
-  for (let i = 1; i < mRows.length; i++) {
-    if (String(mRows[i][0]) === String(memberId)) {
-      if (Number(mRows[i][3]) <= 0) return output({ result: "fail", message: "잔여 횟수가 없습니다." });
-      mSheet.getRange(i + 1, 4).setValue(Number(mRows[i][3]) - 1);
-      
-      const now = new Date();
-      const kstDate = Utilities.formatDate(now, "Asia/Seoul", "yyyy-MM-dd");
-      const kstTime = Utilities.formatDate(now, "Asia/Seoul", "HH:mm");
-      aSheet.appendRow([memberId, kstDate, kstTime]);
-      
+      sheet.getRange(i + 1, 2).setValue(data.name);
+      sheet.getRange(i + 1, 3).setValue(data.phone);
+      sheet.getRange(i + 1, 4).setValue(Number(data.pt));
+      sheet.getRange(i + 1, 6).setValue(data.address);
+      sheet.getRange(i + 1, 7).setValue(data.height);
+      sheet.getRange(i + 1, 8).setValue(data.weight);
+      sheet.getRange(i + 1, 9).setValue(data.goal);
+      sheet.getRange(i + 1, 10).setValue(data.memo);
+      sheet.getRange(i + 1, 11).setValue(data.teacher);
       return output({ result: "success" });
     }
   }
@@ -108,10 +58,38 @@ function getMembers() {
   const rows = sheet.getDataRange().getValues();
   rows.shift();
   const members = rows.map(r => ({
-    id: r[0], name: r[1], teacher: r[2], pt: r[3], phone: r[4], 
-    address: r[5], height: r[6], weight: r[7], goal: r[8], memo: r[9]
+    id: r[0], name: r[1], phone: r[2], pt: r[3], status: r[4],
+    address: r[5], height: r[6], weight: r[7], goal: r[8], memo: r[9],
+    teacher: r[10]
   }));
   return output({ result: "success", data: members });
+}
+
+function addMember(data) {
+  const ss = SpreadsheetApp.getActive();
+  const sheet = ss.getSheetByName(MEMBERS);
+  const id = new Date().getTime();
+  sheet.appendRow([id, data.name, data.phone, data.pt, "active", data.address, data.height, data.weight, data.goal, data.memo, data.teacher]);
+  return output({ result: "success" });
+}
+
+function checkIn(memberId) {
+  const ss = SpreadsheetApp.getActive();
+  const mSheet = ss.getSheetByName(MEMBERS);
+  const aSheet = ss.getSheetByName(ATTEND);
+  const rows = mSheet.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    if (String(rows[i][0]) === String(memberId)) {
+      if (rows[i][3] <= 0) return output({ result: "fail", message: "잔여 PT 없음" });
+      const now = new Date();
+      const today = Utilities.formatDate(now, "Asia/Seoul", "yyyy-MM-dd");
+      const nowTime = "'" + Utilities.formatDate(now, "Asia/Seoul", "HH:mm");
+      aSheet.appendRow([memberId, today, nowTime, 1]);
+      mSheet.getRange(i + 1, 4).setValue(rows[i][3] - 1);
+      return output({ result: "success" });
+    }
+  }
+  return output({ result: "fail" });
 }
 
 function loginCheck(id, pw) {
@@ -125,8 +103,105 @@ function loginCheck(id, pw) {
   return output({ result: "fail" });
 }
 
+function getAttendance(memberId) {
+  const sheet = SpreadsheetApp.getActive().getSheetByName(ATTEND);
+  const rows = sheet.getDataRange().getValues();
+  rows.shift();
+  const data = rows.filter(r => String(r[0]) === String(memberId)).map(r => ({
+    date: r[1] instanceof Date ? Utilities.formatDate(r[1], "Asia/Seoul", "yyyy-MM-dd") : r[1],
+    time: String(r[2])
+  }));
+  return output({ result: "success", data: data });
+}
+
+function getInBody(memberId) {
+  const sheet = SpreadsheetApp.getActive().getSheetByName(INBODY);
+  if (!sheet) return output({ result: "success", data: [] });
+
+  const rows = sheet.getDataRange().getValues();
+  rows.shift();
+  const data = rows
+    .filter(r => String(r[0]) === String(memberId))
+    .map(r => ({
+      date: r[1] instanceof Date ? Utilities.formatDate(r[1], "Asia/Seoul", "yyyy-MM-dd") : r[1],
+      weight: r[2],
+      muscle: r[3],
+      fatMass: r[4],
+      fatPercent: r[5]
+    }));
+  data.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  return output({ result: "success", data: data });
+}
+
+function addInBody(data) {
+  const sheet = SpreadsheetApp.getActive().getSheetByName(INBODY);
+  if (!sheet) return output({ result: "error", message: "InBody sheet not found" });
+  let dateStr = data.date;
+  if (!dateStr) {
+    const now = new Date();
+    dateStr = Utilities.formatDate(now, "Asia/Seoul", "yyyy-MM-dd");
+  }
+
+  sheet.appendRow([
+    data.memberId,
+    "'" + dateStr, // 시트에서 자동 날짜 변환 방지를 위해 문자열로 저장
+    data.weight,
+    data.muscle,
+    data.fatMass,
+    data.fatPercent
+  ]);
+  return output({ result: "success" });
+}
+
+/**
+ * 삭제 실패 오류 해결을 위해 날짜 비교 로직을 수정한 함수
+ */
+function deleteInBody(data) {
+  const sheet = SpreadsheetApp.getActive().getSheetByName(INBODY);
+  if (!sheet) return output({ result: "error", message: "InBody sheet not found" });
+
+  const rows = sheet.getDataRange().getValues();
+  const targetId = String(data.memberId).trim();
+  const targetDate = String(data.date).trim(); // 삭제 요청된 yyyy-MM-dd
+
+  for (let i = rows.length - 1; i >= 1; i--) {
+    const rowId = String(rows[i][0]).trim();
+    if (rowId === targetId) {
+      let rowDate = rows[i][1];
+      let rowDateStr = "";
+
+      // [중요 수정] 시트의 날짜 형식이 무엇이든 yyyy-MM-dd로 통일하여 비교
+      try {
+        const d = new Date(rowDate);
+        if (!isNaN(d.getTime())) {
+          rowDateStr = Utilities.formatDate(d, "Asia/Seoul", "yyyy-MM-dd");
+        } else {
+          // Date 객체가 아닐 경우 문자열에서 날짜 부분만 추출
+          rowDateStr = String(rowDate).split(' ')[0].indexOf('-') !== -1
+                       ? String(rowDate).substring(0, 10)
+                       : String(rowDate).trim();
+        }
+      } catch (e) {
+        rowDateStr = String(rowDate).trim().substring(0, 10);
+      }
+
+      if (rowDateStr === targetDate) {
+        sheet.deleteRow(i + 1);
+        return output({ result: "success" });
+      }
+    }
+  }
+
+  return output({
+    result: "fail",
+    message: `Record not found. ID: ${targetId}, Date: ${targetDate}`
+  });
+}
+
 function deleteMember(memberId) {
-  const sheet = SpreadsheetApp.getActive().getSheetByName(MEMBERS);
+  const ss = SpreadsheetApp.getActive();
+  const sheet = ss.getSheetByName(MEMBERS);
   const rows = sheet.getDataRange().getValues();
   for (let i = 1; i < rows.length; i++) {
     if (String(rows[i][0]) === String(memberId)) {

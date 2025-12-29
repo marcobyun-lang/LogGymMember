@@ -124,6 +124,13 @@
             font-weight: 600; transition: all 0.3s ease; 
         }
         .btn-detail:hover { background: rgba(255, 255, 255, 0.12); border-color: rgba(255, 255, 255, 0.3); transform: translateY(-2px); }
+
+        .btn-inbody {
+            flex: 1; background: rgba(59, 130, 246, 0.1); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3);
+            padding: 14px; border-radius: 16px; text-align: center; text-decoration: none; font-size: 0.9rem;
+            font-weight: 600; transition: all 0.3s ease;
+        }
+        .btn-inbody:hover { background: rgba(59, 130, 246, 0.2); border-color: #60a5fa; transform: translateY(-2px); }
     </style>
 </head>
 <body>
@@ -148,7 +155,7 @@
     </div>
 
     <script>
-        const API = "https://script.google.com/macros/s/AKfycby80GPaE8yuwvk8CE6Jq935bZL3PVwvg7a_gChDwW9JYC1YAEPsqiTf4yRxBlsIbKe8/exec";
+        const API = "https://script.google.com/macros/s/AKfycbxhrJ5d2zjHQqZXB8riFNQwpW1jxCmP7K8d6YjEfiJRCyCSqRvGv5M59VFT7VHKeMII/exec";
         let allData = [];
         const ORDER_KEY = 'member_display_order';
 
@@ -236,8 +243,9 @@
                     </div>
                     <div class="list-prog-container"><div class="list-prog-bar" style="width:${Math.min((pt/30)*100, 100)}%; ${pt<=3?'background:var(--danger)':''}"></div></div>
                     <div class="actions">
-                        <button class="btn-check" onclick="checkIn('${m.id}', '${m.name}')">출석 체크</button>
-                        <a href="member.html?id=${m.id}" class="btn-detail">상세보기</a>
+                        <button class="btn-check" onclick="checkIn('${m.id}', '${m.name}')">출석</button>
+                        <a href="inbody.html?id=${m.id}&name=${encodeURIComponent(m.name)}" class="btn-inbody">InBody</a>
+                        <a href="member.html?id=${m.id}" class="btn-detail">상세</a>
                     </div>
                 `;
 
